@@ -1,0 +1,18 @@
+Challenges:
+    -end nodes of the mapped out routes (particularly baseball field and milican hall) were either not publicly accessible (buses only) or on a sidewalk rather than a road (baseball field)
+    -measurement process added extra time due to public parking/necessity to start/stop stopwatch in a safe, non-traffic obstructing area (first response teams can simply stop right at the building/front entrance)
+    -traffic and stoplights varied as the day continued
+    -daycare required detour to Libra garage (daycare to baseball field route) due to construction
+    
+Important Notes:
+    -routes involving left turns often take longer than routes involving right turns
+    -areas of rougher terrain (daycare during construction, lake claire) require slower travel and thus cause more delays
+    -placement/value of speed limit signs further influence time
+ 
+For Future Editing:
+    -Milican Hall must be split into two nodes
+    -Move daycare node on map to be more eastbound and along Libra Dr
+    -Baseball field has three potential nodes for parking, or can be kept as-is for sake of simplicity
+    
+Progress:
+    -Obtained 10 measurements for Baseball-Lake Claire, 9 Measurements for Baseball-Daycare, and 1 measurement for Daycare-Milican.

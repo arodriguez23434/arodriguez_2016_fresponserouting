@@ -1,0 +1,6 @@
+- Routes involving left turns often take longer than routes involving right turns (right turns on red permitted in Florida)
+- Areas of rougher terrain (daycare during construction, lake claire) require slower travel and thus cause more delays
+- Placement & value of speed limit signs further influence time
+- Construction caused difficulties in measurement due to necessary detour on all daycare routes
+- Variance in traffic/stoplights based on time of day
+- While other stoplights are present in particular locations (e.g. RWC), they pose no relevant decision for the response team to make on the route, so they are omitted

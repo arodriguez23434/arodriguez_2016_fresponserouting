@@ -1,0 +1,5 @@
+Ordered in priority:
+1) Create schematic of routes for model (DUE: 2/23/15)
+2) Readjust aerial mapping to fit schematic
+3) Encode measurements to a consistent format
+4) Obtain further time measurements between nodes
