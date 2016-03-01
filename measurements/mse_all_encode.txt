@@ -1,0 +1,32 @@
+#ar: CFE Arena
+#bf: Baseball Field
+#lc: Lake Claire
+#dc: Daycare
+#mh: Milican Hall
+ar_bf_107
+ar_bf_124
+ar_bf_127
+ar_bf_79
+ar_bl_47
+ar_lc_119
+ar_lc_135
+ar_lc_153
+ar_lc_171
+ar_lc_204
+ar_lc_87
+bf_ar_112
+bf_ar_68
+bf_ar_69
+bf_ar_86
+bf_ar_97
+dc_ar_140
+dc_mh_124
+dc_mh_235
+lc_ar_148
+lc_ar_64
+lc_ar_78
+lc_ar_82
+lc_ar_91
+lc_ar_99
+lc_mh_207
+mh_dc_111

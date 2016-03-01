@@ -1,0 +1,5 @@
+Updates:
+- Set measurements file to encoded format
+- Reworked measurements file to suit new schematic (19 measurements dropped)
+- Added 24 measurements
+- Simplified schematic (removed curvature and set lines on x/y axes)
