@@ -1,3 +1,0 @@
-Ordered in priority:
-1) Obtain further time measurements between nodes; git commit each time
-2) Rearrange skeleton poster to include spot for map & schematic

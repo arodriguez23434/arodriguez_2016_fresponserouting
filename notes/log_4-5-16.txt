@@ -1,0 +1,9 @@
+Updates:
+- Fixed typos on measurements (ar_bf_47 -> ar_bf_74 and lc_ar_64 -> lc_ar_74)
+- Added encoded averages for measurements
+- Added encoded standard deviations for measurements
+- Added XLSL spreadsheet for statistical analysis
+- Removed all redudant logs and skeletal poster
+
+To Do:
+- Encode XLSL spreadsheet into plaintext format
