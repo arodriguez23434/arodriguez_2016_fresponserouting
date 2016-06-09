@@ -1,0 +1,30 @@
+name: C:\Anaconda3\envs\test_networkx
+dependencies:
+- cycler=0.10.0=py34_0
+- decorator=4.0.9=py34_0
+- jpeg=8d=vc10_0
+- libpng=1.6.22=vc10_0
+- libtiff=4.0.6=vc10_2
+- matplotlib=1.5.1=np111py34_0
+- mkl=11.3.3=1
+- networkx=1.11=py34_0
+- numpy=1.11.0=py34_1
+- openssl=1.0.2h=vc10_0
+- pip=8.1.2=py34_0
+- pyparsing=2.1.4=py34_0
+- pyqt=4.11.4=py34_6
+- python=3.4.4=4
+- python-dateutil=2.5.3=py34_0
+- pytz=2016.4=py34_0
+- qt=4.8.7=vc10_8
+- setuptools=22.0.5=py34_0
+- sip=4.16.9=py34_2
+- six=1.10.0=py34_0
+- tk=8.5.18=vc10_0
+- vs2010_runtime=10.00.40219.1=1
+- wheel=0.29.0=py34_0
+- zlib=1.2.8=vc10_3
+- pip:
+  - googlemaps==2.4.3
+  - requests==2.9.1
+
