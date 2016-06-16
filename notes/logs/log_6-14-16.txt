@@ -1,0 +1,19 @@
+Updates:
+ - Renamed NetworkX test from test_networkx_undir_graph.py to prototype_undir_graph.py
+ - Moved src folder to main directory
+ - Converted syllabus to plaintext and added to repository
+   > Added task of creating robust network model
+ - First iteration of robust network model
+   > Function declaration in func_network_operations.py
+   > Main file as main_matrix_model.py
+   > Built off of prototype with full commenting and corrected organization
+   > Network formed by dictionary of nodes with individual attributes and dictionary of all possible paths and associated attributes (more information in comments)
+
+Issues:
+ - Shortest path algorithm not properly functioning
+
+Todo:
+ - Allow parameters for file I/O rather than manual entry
+ - Add user input error checks before performing any initialization or calculations
+ - Expand model to include multiple attributes rather than simply concerning distances
+ - Explain model more clearly and concisely than simple scattered comments

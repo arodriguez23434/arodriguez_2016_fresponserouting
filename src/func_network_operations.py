@@ -3,7 +3,6 @@
 import math
 import networkx as nx
 
-#--Non-Specific--
 #Function to get various pieces of information of shortest path from startnode to endnode and output them
 #Currently obtains total path distance and all edges along path
 def get_shortest_path_info(graph,startnode,endnode,nodeAttr):
@@ -28,8 +27,7 @@ def get_shortest_path_info(graph,startnode,endnode,nodeAttr):
     #Store and return all the information
     info = [dist,edgelist]
     return info;
-    
-#--Path Matrix--
+
 #Function to initialize the path matrix
 def matrix_create(graph,nodeAttr):
     print('Creating path matrix...');
@@ -40,23 +38,27 @@ def matrix_create(graph,nodeAttr):
         for j in nodeAttr.keys():
             #Calculate the distance between every path
             pathinfo = get_shortest_path_info(graph,i,j,nodeAttr)
-            #This function can be expanded later to for multiple path attributes
+            #TODO: Multiple path attributes
             pathMatrix[(i,j)] = (pathinfo[0],pathinfo[1]);
     return pathMatrix;
 
-#Function to remove all references to a node from a matrix
-def matrix_remove_node(pathMatrix,node):
-    newMatrix = {key:pathMatrix[key] for key in pathMatrix if node not in key[0] and node not in key[1]};
-    pathMatrix = newMatrix;
-    return pathMatrix;
-
-#--Network--
 #Function to remove a node from all network-related items
 def network_remove_node(node,graph,netNodeAttr,netNodePos,pathMatrix):
-    pathMatrix = matrix_remove_node(pathMatrix,node)
+    #Delete the node from the attribute and position dictionaries
     del netNodeAttr[node]; del netNodePos[node]
+    #Delete the node from the NetworkX graph
     graph.remove_node(node)
-    return pathMatrix;
+    #Remove all references to a node from path matrix
+    newMatrix = {key:pathMatrix[key] for key in pathMatrix if node not in key[0] and node not in key[1]};
+    #Re-calculate any paths that have previously used this node
+    for key in newMatrix:
+        for i in newMatrix[key][1]:
+            if i[0]==node or i[1]==node:
+                #Calculate the distance between every path
+                pathinfo = get_shortest_path_info(graph,key[0],key[1],netNodeAttr)               
+                #TODO: Multiple path attributes
+                newMatrix[key] = (pathinfo[0],pathinfo[1]);
+    return newMatrix;
 
 #Function to add a node with attribute tuple addNodeAttr and list of connecting neighbors to all network-related items
 def network_add_node(node,addNodeAttr,neighbors,graph,netNodeAttr,netNodePos,pathMatrix):
@@ -64,10 +66,15 @@ def network_add_node(node,addNodeAttr,neighbors,graph,netNodeAttr,netNodePos,pat
     graph.add_node(node)
     graph.node[node]['pos'] = (addNodeAttr[0],addNodeAttr[1])
     #TODO: Add any other necessary attributes to node
-    #Add all connecting neighbors as NetworkX edges
-    for connect in neighbors: graph.add_edge(node,connect);
+    #Add attribute data from new node to full node dictionaries
     netNodeAttr[node] = addNodeAttr;
     netNodePos[node] = (netNodeAttr[node][0],netNodeAttr[node][1])
+    #Add all connecting neighbors as NetworkX edges
+    for connect in neighbors: 
+        graph.add_edge(node,connect);
+        dist = math.sqrt(math.pow(netNodePos[connect][0]-netNodePos[node][0],2) + math.pow(netNodePos[connect][1]-netNodePos[node][1],2));
+        graph[node][connect]['weight'] = dist; 
+    #Retrieve all possible paths and add to path matrix
     for key in netNodeAttr.keys():
         pathinfo = get_shortest_path_info(graph,node,key,netNodeAttr)
         pathMatrix[(node,key)] = (pathinfo[0],pathinfo[1]);
