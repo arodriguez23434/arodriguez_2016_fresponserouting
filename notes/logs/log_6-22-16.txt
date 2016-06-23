@@ -1,0 +1,13 @@
+Updates:
+ - Changed all instances of nodeAttr in func_network_operations to netNodeAttr for both consistency and to prevent confusion with named variables in main_matrix_model
+ - Added -very- wide variety of user input checks to ensure data is properly formatted
+ - Updated in-line todos and comments
+ - Updated yml to include XLSL support for Excel spreadsheets
+ - Added readme.txt to instruct users on how to use model
+Todo:
+ - Allow parameters for file I/O rather than manual entry
+   > Decide whether to permit XLSL (Excel), XML, or plaintext formats
+   > Create interpreting functions for each specific format
+ - Have program run continously
+   > User prompts to allow showing of current map, changing desired route, and updating the model (either by further prompt or by loading a file)
+ - If either above is finished, update readme.txt accordingly
