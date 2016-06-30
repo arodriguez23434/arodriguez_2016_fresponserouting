@@ -3,51 +3,58 @@ Summer/Fall 2016 URE Agenda
 Primary Objective: Build a flexible model to simulate performance of vehicles under assumption of an entirely electric fleet.
 ---
 Summer 2016
--Setup GitHub page for project
--Obtain necessary APIs and libraries for model
-	oExperiment with capabilities of these tools
-		>Simple function calls and inputs
--NetworkX
-	oDevelop simplified "shortest path" model to testing capabilities of library
-	oCreate a robust network "matrix" in order to store various parameters for edges; focus only shortest path distance for time being
+- Setup GitHub page for project
+- Obtain necessary APIs and libraries for model
+  o Experiment with capabilities of these tools
+    > Simple function calls and inputs
+- NetworkX
+  o Develop simplified "shortest path" model to testing capabilities of library
+  o Create a robust network "matrix" in order to store various parameters for edges; focus only shortest path distance for time being
 
--Google Maps
-	oFocus primarily on obtaining road data
-		>Understand various output formats
-	oCreate over-simplified test routing model
-		>Simple "branching paths" linear model to same destination
-		>Understand decision-making functionality in particular
-		>Intended as a non-flexible test for learning tools 
--Build simplified decision-making model for a closed circuit path
-	oMaintain flexibility in function definition
--End Goal 1: Extend model to fit current schematic
-	oEmploys two circuits connected by a node
-	oRandomized destination location
-	oAdd time limit to route and have model predict whether or not it could reach the destination in time
-	oEnsure some sort of graphical output can be provided
--End Goal 2: Implement Google Maps roads into model
-	oImplement multiple destinations
-	oAutomate the process of node placement, if possible
-		>If not, ensure node placement matches with static road data
-	oEnsure routing is consistent with static road data
--End Goal 3: If time permits, extend model to include resource consumption on trip
-	oArbitrary resource for easy calculations and testing
-		>Ensure functions defined for these can later on include other functions for more complex calculations
-	oDecision-making process must change according to resource count
-		>Low resource should force route to cycle back to the station before continuing
+- Google Maps
+  o Focus primarily on obtaining road data
+    > Understand various output formats
+  o Create over-simplified test routing model
+    > Simple "branching paths" linear model to same destination
+    > Understand decision-making functionality in particular
+    > Intended as a non-flexible test for learning tools 
+
+- Build simplified decision-making model for a closed circuit path
+  o Maintain flexibility in function definition
+- Ensure simplified model has proper error-checking
+- Introduce file I/O to model for simplified testing and updating
+- Have graph output be presentable at any given time
+  > Ensure readability and large enough size
+  > Save output to file
+
+- End Goal 1: Extend model to fit current schematic
+  o Employs two circuits connected by a node
+  o Randomized destination location
+  o Add time limit to route and have model predict whether or not it could reach the destination in time
+  o Ensure some sort of graphical output can be provided
+- End Goal 2: Implement Google Maps roads into model
+  o Implement multiple destinations
+  o Automate the process of node placement, if possible
+    > If not, ensure node placement matches with static road data
+  o Ensure routing is consistent with static road data
+- End Goal 3: If time permits, extend model to include resource consumption on trip
+  o Arbitrary resource for easy calculations and testing
+    > Ensure functions defined for these can later on include other functions for more complex calculations
+  o Decision-making process must change according to resource count
+    > Low resource should force route to cycle back to the station before continuing
 Fall 2016
--If either End Goal 2 or End Goal 3 from Summer was not attained, perform actions to reach them first
--Add resource replenishing stations to the model & test decision-making from there
--Convert resource arbitration to electricity; include engine consumption for electricity assuming a constant speed
--Refine model to include stoplights (energy consumed will be less when stopped but still consuming; model must make accurate prediction while accounting for total time stalled en route)
--Include multiple vehicles into the model
--Ideally, integrate call frequency data into model and vary destination by where these calls would likely occur and how frequently they would occur
--Optional Refinements (Ideal, not required):
-	oElevation data (more energy consumed uphill than downhill)
-	oTraffic data (moving obstacles + necessity to stop)
-	oMultiple fire stations
--End Goal: Place into presentable poster and paper format
-	oPaper format can explain the process of the model's creation
-	oPoster format however should just visualize and describe the model itself
-	oPaper format should showcase results of time study + energy efficiency with quantative data
-	oPoster format should showcase summarized version of results with emphasis on why they're important
+- If either End Goal 2 or End Goal 3 from Summer was not attained, perform actions to reach them first
+- Add resource replenishing stations to the model & test decision-making from there
+- Convert resource arbitration to electricity; include engine consumption for electricity assuming a constant speed
+- Refine model to include stoplights (energy consumed will be less when stopped but still consuming; model must make accurate prediction while accounting for total time stalled en route)
+- Include multiple vehicles into the model
+- Ideally, integrate call frequency data into model and vary destination by where these calls would likely occur and how frequently they would occur
+- Optional Refinements (Ideal, not required):
+  o Elevation data (more energy consumed uphill than downhill)
+  o Traffic data (moving obstacles + necessity to stop)
+  o Multiple fire stations
+- End Goal: Place into presentable poster and paper format
+  o Paper format can explain the process of the model's creation
+  o Poster format however should just visualize and describe the model itself
+  o Paper format should showcase results of time study + energy efficiency with quantative data
+  o Poster format should showcase summarized version of results with emphasis on why they're important
