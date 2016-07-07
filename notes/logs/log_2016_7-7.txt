@@ -1,0 +1,41 @@
+Updates:
+- Added map background and moved nodes accordingly
+- Removed nodeNeighbors from config and added edgeAttr
+  > Key is Node1,Node2; X = Obstructed, Y = List of Times
+- Modified EXCEL format 
+  > Worksheet 1
+    o Modified Columns B & C to be specific to grid/display
+    o Columns D and E now reserved for real world coordinates
+  > Worksheet 2
+    o Row 1 has entries Node1,Node2 (key of PathMatrix)
+    o Row 2 indicates whether the edge is obstructed (boolean)
+    o Rows 3+ is time data entries in seconds
+- Modified file_excel_interpret to obtain nodeNeighbors from Sheet 2 Row 1 and create edgeAttr from Sheet 2
+- Added numRuns to configuration (# of iterations for a particular program run)
+- edgeAttr and numRuns added to check_user_input
+- Overhauled calc_edge_weights for time consideration and multiple iterations
+  > Mean and standard deviations of edge times in edgeAttr stored as variables
+  > Now generates a list of sample times (index count = numRun) from mean and std. dev. using numpy.random.normal (Gaussian Noise)
+  > Factors obstructions into edges (weight = 999999 if True)
+  > Now has attributes 'weight_list' and 'time_list' formed from generated list of times
+- Modified get_shortest_path_info for multiple iterations
+  > Now obtains total 'weight' from the edges on the path instead of dist and return that as info[0] 
+  > Also obtains total 'time' from edges on path and return that as info[2] and total 'distance' as info[3]
+- Modified matrix_create for multiple iterations
+  > Now iterates over numRuns and sets 'weight' = 'weight_list'[iter] for each path consideration
+  > Stores both best path from all iterations as well as all considered paths into pathMatrix[key][0] and pathMatrix[key][1] respectively  
+- Graph now displays best path from multiple iterations, travel time on that path, distance on that path, and number of iterations performed
+
+Todo:
+ - Modify network_add_node and network_remove_node 
+   > Account for edgeAttr
+   > Account for numRuns
+   > Modify example calls accordingly
+ - inputs.txt
+   > Make lists of origins and destinations and have user pick/comment out 
+   > Number of iterations in file
+   > Whether to output/log data T/F
+- Handle obstructed edges more cleanly (currently just sets weight to 999999)
+   > If edge is obstructed, set color to red
+ - Update syllabus to reflect changes
+ - Update syllabus to include report desired by EXCEL
