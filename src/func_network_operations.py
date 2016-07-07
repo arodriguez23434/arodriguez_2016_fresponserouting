@@ -72,8 +72,10 @@ def matrix_create(graph,netNodeAttr,netNumRuns):
                 #If the path lists are valid, set the pathMatrix entry to them
                 if best_path and all_paths: pathMatrix[(i,j)] = [best_path,all_paths]
                 else: raise nx.NetworkXNoPath()
-            except:
-                print("ERROR: Failed to create pathing matrix. Please check your configuration and try again.");
+            except ValueError:
+                for i,j in graph.edges():
+                    print(i,j,graph[i][j]['weight'])
+                #print("ERROR: Failed to create pathing matrix. Please check your configuration and try again.");
                 return False
     return pathMatrix;
 
@@ -151,7 +153,7 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns):
         dist = math.sqrt(math.pow(netNodeAttr[node2][2]-netNodeAttr[node1][2],2) + math.pow(netNodeAttr[node2][3]-netNodeAttr[node1][3],2));
         for i in range(0,netNumRuns): 
             #Generate a time based on Gaussian distribution of input times
-            timeGen.append(random.normal(timeAvg,timeStd,None))
+            timeGen.append(abs(random.normal(timeAvg,timeStd,None)))
             #Add this time to the list of weights
             weight_list.append(timeGen[i])
             #Include distance as part of the weight operation
@@ -201,7 +203,8 @@ def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,
             continue
         for cell in row:
             #If the cell is in the label column, do not interpret
-            if  cell.column == 'A': continue
+            if cell.column == 'A': continue
+            if cell.value == None: continue
             #Add each cell value to the temporary list of row values
             row_values.append(cell.value)
         #Use first column value as key and add list of row values as attributes
@@ -216,6 +219,7 @@ def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,
         #If the column is the label column, do not interpret
         if col[0].column == 'A': continue
         for cell in col:
+            if cell.value == None: continue
             if cell.row == 1:
                 strind = cell.value.index(',')
                 netNodeNeighbors.append([cell.value[0:strind],cell.value[strind+1:]])
