@@ -16,20 +16,20 @@ o Calculate shortest path from one node in space to another using a robust
 
 #--Configuration--
 #loadFromFile: Boolean to allow parameters for file rather than manual entry
-#fileDir = String pointing to file location if loading data from file; ignored if loadFromFile = False
+#fileDir: String pointing to file location if loading data from file; ignored if loadFromFile = False
+#testFor: List variables to consider for best path selection. Consideration amounts should be from 0-1. X: Time Y: Distance Z: Elevation
 loadFromFile = True
 fileDir = 'files/helloworld.xlsx'
 #The following can be ignored if loadFromFile = True
 #nodeAttr: Key should be node name and the first two attributes must represent X and Y positions in the graph. Attributes should be in list format.
-#nodeNeighbors: Must be list of 2D lists that are made of two node names in nodeAttr
 #pathDesired: Must be a 2D tuple made of two node names in nodeAttr
+#edgeAttr: Key should be two node names seperated by a comma (no space), first value is obstruction and second is a list of times it takes to travel along the edge.
 nodeAttr = {'Station': [10,8], 'Jay-Bergman Field': [8,8], 'Softball Field': [10,6], 'CFE Arena': [8,6], 'Lake Claire': [6,6], 'Child Center': [8,4], 'Milican Hall': [6,4]}
 pathDesired = ('Station','Milican Hall')
 edgeAttr = {'Station,Jay-Bergman Field': [False,[1]]}
 numRuns = 100
-#edgeAttr: Key is Node1,Node2; X = Obstructed, Y = List of Times
-#TODO: Get neighbors from keys
-#TODO: obstructedEdges = [['A','B'],...]
+obstructChance = 0.1
+testFor = [1,0,1]
 #--End of Configuration--
 
 #--Main Function--
@@ -53,26 +53,27 @@ def main():
         outGraph.node[i]['pos'] = p;
     try:
         #NetworkX uses a universal 'weight' attribute for edges for its algorithms
-        nop.calc_edge_weights(outGraph,nodeAttr,edgeAttr,numRuns)
+        nop.calc_edge_weights(outGraph,nodeAttr,edgeAttr,numRuns,testFor,obstructChance)
     except KeyError:
         print("ERROR: Found node in nodeNeighbors that does not exist in nodeAttr!")
         return
     #Create a path matrix for the network
     pathMatrix = nop.matrix_create(outGraph,nodeAttr,numRuns);
-    
+        
     #-Main Operating Block-
     
-    ##EXAMPLE: removing node 'C' then adding node 'D' and re-routing to there
-    #try: pathMatrix = nop.network_remove_node('C',outGraph,nodeAttr,edgeAttr,nodePos,pathMatrix)    
-    #except: print("ERROR: Failed to remove node (input error)")    
-    #try: pathMatrix = nop.network_add_node('D',[1,2],['B','E'],outGraph,nodeAttr,edgeAttr,nodePos,pathMatrix)
-    #except: print("ERROR: Failed to add node (input error)")    
-    #pathDesired = ('B','E')
-    
-    #Print out the nodes and edges for debugging purposes
-    #print("Dict\n---\nNodes\n{0}\n\nPos\n{1}\n".format(nodeAttr,nodePos))
-    #print("Graph\n---\n\nNodes\n{0}\n\nEdges\n{1}\n".format(outGraph.nodes(data=True),outGraph.edges(data=True)))
-    #print("Path Matrix\n{0}\n".format(pathMatrix))
+    #EXAMPLE: removing node 'C' then adding node 'D' and re-routing to there
+#    try: pathMatrix = nop.network_remove_node('Milican Hall',outGraph,nodeAttr,edgeAttr,nodePos,pathMatrix,numRuns)    
+#    except: print("ERROR: Failed to remove node (input error)")    
+#    try: 
+#        addNode = 'Teaching Academy'
+#        pathMatrix = nop.network_add_node(addNode,[12,60,28.597363,-81.203363,-5],{addNode+',Lake Claire': [False,[100,200]],addNode+',Early Childhood Center': [False,[100,200]]},outGraph,nodeAttr,edgeAttr,nodePos,pathMatrix,numRuns,testFor,obstructChance)
+#    except: print("ERROR: Failed to add node (input error)")    
+#    pathDesired = ('Fire Station','Teaching Academy')
+        
+    #Set the edges to the iteration of the path we want
+    try: nop.iter_edges(outGraph,pathMatrix[pathDesired][2])  
+    except: print("ERROR: Failed to properly retrieve weights from edges!")
     
     #-Graph Drawing-
     try:
@@ -120,7 +121,7 @@ def main():
         #Draw the edge labels
         nx.draw_networkx_edge_labels(outGraph,nodePos,edge_labels=edge_labels,label_pos=0.5) 
         #Draw information box
-        plt.text(1,15,'Travel Time: {0} s\nTotal Distance: {1} mi\n# of Runs Tested: {2}\n'.format(round(pathMatrix[pathDesired][0][2],3),round(pathMatrix[pathDesired][0][3],3),numRuns),fontsize=12,bbox=dict(facecolor='green', alpha=0.5),horizontalalignment='left')        
+        plt.text(1,15,'Travel Time: {0} s\nTotal Distance: {1} mi\nDelta Elevation: {2} in\n# of Runs Tested: {3}\nPower Used: {4} W'.format(round(pathMatrix[pathDesired][0][2],3),round(pathMatrix[pathDesired][0][3],3),round(pathMatrix[pathDesired][0][4],3),numRuns,round(pathMatrix[pathDesired][0][5],3)),fontsize=12,bbox=dict(facecolor='green', alpha=0.5),horizontalalignment='left')        
         #Save the graph to an image file        
         plt.savefig('files/output.png')
         #Display the graph
@@ -133,7 +134,9 @@ nodeNeighbors = list();
 if loadFromFile == True:
     fileType = nop.file_check(fileDir)
     #If the output isn't a bool, it's an excel workbook
-    if type(fileType)!=bool: pathDesired = nop.file_excel_interpret(fileDir,fileType,nodeAttr,edgeAttr,nodeNeighbors,pathDesired)
+    if type(fileType)!=bool: 
+        fileInfo = nop.file_excel_interpret(fileDir,fileType,nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,obstructChance,testFor)
+        pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]; testFor = fileInfo[3]
 #Before doing anything else, check user input for errors
 netProceed = nop.check_user_input(nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns)
 if netProceed == False: print("Please reconfigure the model to fix the issue(s) and try again.")

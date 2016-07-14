@@ -1,0 +1,28 @@
+Updates:
+- Updated network_add_node and network_remove_node to new edgeAttr and numRuns format
+  > Updated examples to be more in line with new format
+- Migrated internals of matrix_create to a matrix_iter function for more efficient matrix rebuilding (used in network_remove_node)
+- Fixed issue where edges where displaying incorrect weights (displayed the numRun-th iteration instead of the iteration used in the desired path)
+- Added elevation as a node attribute
+- Added configuration variable: obstructChance
+  > Global chance of a particular road being obstructed
+  > Can be later replaced a list of obstruction chances for each road that can defined by the spreadsheet rather than a row of booleans
+- Added configuration variable: testFor
+  > Determines what % of a key variable (time, distance, elevation) should be considered in weight determination
+  > Useful for forming hypotheses
+  > Can be transitioned into a weightConsideration variable and use testFor for statistical analysis if necessary
+- Added numRuns, testFor and obstructionChance to be read from spreadsheet
+  > file_excel_interpret now returns a list called fileInfo that contains the changed data
+- Added preliminary function for determining fuel cost along an edge
+  > Formula is entirely placeholder
+  > Used in get_shortest_path_info for total fuel cost as path attribute
+
+Potential Venture:
+- Create scatter plots that compare fuel consumption with key variables (time, distance, elevation) as a way of demonstrating significance of each factor
+
+Todo:
+- Replace placeholder elevations with values from a recent topographical map
+- Replace fuel cost calculation formula with more accurate measurements
+- Update syllabus to reflect all current changes
+- Update syllabus to include report desired by EXCEL
+- Create inputs.txt (see log_2016_7-7)
