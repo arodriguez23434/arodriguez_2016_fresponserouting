@@ -197,7 +197,7 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netTestFor,netObs
             #If the road is obstructed, set weight to an invalid value
             #TODO: Currently it just sets the weight to a high value;
             #      Find suitable NetworkX substitute if possible
-            if edgeInfo[0]==True: weight_list[i] = 999999;
+            if edgeInfo[0]==True: weight_list[i] += timeGen[i]*100;
             #If the weight is negative, set it to zero and warn the user
             if weight_list[i]<=0:
                 weight_list[i]=1
@@ -219,7 +219,16 @@ def file_check(netFileDir):
     if netFileDir.lower().endswith(('.xlsx','.xlsm','.xltx','.xltm')):
         try:
             wb = xl.load_workbook(filename = netFileDir)
-            return wb;
+            netType = ['excel',wb]
+            return netType;
+        except:
+            print("ERROR: Invalid file %s" % netFileDir)
+            return False;
+    elif netFileDir.lower().endswith(('.txt')):
+        try:
+            with open(netFileDir,'r') as file:
+                netType = ['txt',file]
+            return netType
         except:
             print("ERROR: Invalid file %s" % netFileDir)
             return False;
@@ -278,6 +287,37 @@ def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,
         netEdgeAttr[col[0].value] = col_values                
     return netInfo;
     
+def file_inputs_interpret(netFileDir,file,netPathDesired,netNumRuns,netObstructChance,netTestFor):
+    #Setup basic inputs for returning values
+    netInfo = list(); lineStr = str('\n'); lineCount = 0;
+    #Open the file; with parameter allows file to be closed even during exceptions
+    with open(netFileDir,'r') as f:
+        while True:
+            #Read the next line
+            lineStr = f.readline()
+            #If the line has no characters, assume EoF
+            if len(lineStr)<=0 and lineCount>4: break
+            #If the first character is a #, skip the line
+            if lineStr[0]=='#': continue
+            lineCount+=1;
+            #If this is the 6th line or beyond, assume it is the path desired 
+            #TODO: Check that user has only selected one path            
+            if lineCount>=6:
+                try:
+                    strind = lineStr.index(',')
+                    strend = lineStr.index('\n')
+                    netPathDesired = (lineStr[0:strind],lineStr[strind+1:strend])
+                except: print("ERROR: Path desired was improperly setup!")
+            #Check for specific parameters within the line and add to netInfo accordingly
+            elif 'NumberOfIterations' in lineStr: netNumRuns=int(lineStr[19:])
+            elif 'ObstructionChance' in lineStr: netObstructChance=float(lineStr[18:])
+            elif 'TimeConsideration' in lineStr: netTestFor[0]=float(lineStr[18:])
+            elif 'DistanceConsideration' in lineStr: netTestFor[1]=float(lineStr[22:])
+            elif 'ElevationConsideration' in lineStr: netTestFor[2]=float(lineStr[23:])
+    #Return the info provided
+    netInfo = [netPathDesired,netNumRuns,netObstructChance,netTestFor]
+    return netInfo;
+
 def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns):
     #Are the nodes properly setup?
     for i in netNodeAttr.values():
@@ -340,8 +380,6 @@ def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,net
         print("ERROR: Desired route was improperly setup! (Not a tuple)")
         return False;
     #Do the nodes in the path desired exist?
-    #TODO: Could merge this to 'Is every node connected to an edge?' loop, but
-    #      this would disorganize code
     node_occur_a = 0; node_occur_b = 0
     for i in netNodeAttr.keys():
         if i == netPathDesired[0]: node_occur_a+=1

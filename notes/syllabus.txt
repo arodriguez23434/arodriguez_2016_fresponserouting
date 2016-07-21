@@ -10,51 +10,54 @@ Summer 2016
 - NetworkX
   o Develop simplified "shortest path" model to testing capabilities of library
   o Create a robust network "matrix" in order to store various parameters for edges; focus only shortest path distance for time being
+- Build simplified decision-making model for a closed circuit path
+  o Maintain flexibility in function definition
+  o Allow nodes to be added and removed after model is created
+- Ensure simplified model has proper error-checking
+- Have graph output be presentable at any given time
+  o Ensure readability and large enough size
+  o Save output to file
+- Fit schematic to model
+  o Employ two circuits connected by a node
+  o Have seperate variables for real positions versus projected 
+positions
+- Introduce file I/O to model for simplified testing and updating
+  o EXCEL Spreadsheet which can be read and updated easily
+  o inputs.txt file to allow user to comment out and remove comments for simulation preferences
+    > Use for both purpose of model configuration as well as testing specific inputs/outputs
+- Output measured weights, determined path and all relevant inputs
+  o Primary inputs: Distance, Time, and Elevation
+  o If available, include secondary inputs such as weight of consideration for these variables or number of iterations performed
+- Extend model to include resource consumption on trip
+  o Arbitrary resource for easy calculations and testing
+    > Ensure functions defined for these can later on include other functions for more complex calculations
+  o Decision-making process must change according to resource count
+    > Low resource should force route to cycle back to the station before continuing
+- Draft, revise and submit a research letter regarding the project, its goals, its parameters, current function and future tasks
+- Create a 230-250 approved abstract as required by EXCEL
 
-- Google Maps
+Fall 2016
+- Improve formulas utilized for calculating distance and elevation between nodes
+   o May require heightmap or elevation data input for accuracy
+- Provide relevant graphical outputs to show relationship and importance of particular inputs to resulting trip
+- Convert resource arbitration to electricity; include engine consumption for electricity assuming a constant speed
+- Refine model to include stoplights (energy consumed will be less when stopped but still consuming; model must make accurate prediction while accounting for total time stalled en route)
+- Ideally, integrate call frequency data into model and vary destination by where these calls would likely occur and how frequently they would occur
+- Implement Google Maps roads into model, if possible
   o Focus primarily on obtaining road data
     > Understand various output formats
   o Create over-simplified test routing model
     > Simple "branching paths" linear model to same destination
     > Understand decision-making functionality in particular
     > Intended as a non-flexible test for learning tools 
-
-- Build simplified decision-making model for a closed circuit path
-  o Maintain flexibility in function definition
-- Ensure simplified model has proper error-checking
-- Introduce file I/O to model for simplified testing and updating
-- Have graph output be presentable at any given time
-  > Ensure readability and large enough size
-  > Save output to file
-
-- End Goal 1: Extend model to fit current schematic
-  o Employs two circuits connected by a node
-  o Randomized destination location
-  o Add time limit to route and have model predict whether or not it could reach the destination in time
-  o Ensure some sort of graphical output can be provided
-- End Goal 2: Implement Google Maps roads into model
   o Implement multiple destinations
   o Automate the process of node placement, if possible
     > If not, ensure node placement matches with static road data
   o Ensure routing is consistent with static road data
-- End Goal 3: If time permits, extend model to include resource consumption on trip
-  o Arbitrary resource for easy calculations and testing
-    > Ensure functions defined for these can later on include other functions for more complex calculations
-  o Decision-making process must change according to resource count
-    > Low resource should force route to cycle back to the station before continuing
-Fall 2016
-- If either End Goal 2 or End Goal 3 from Summer was not attained, perform actions to reach them first
-- Add resource replenishing stations to the model & test decision-making from there
-- Convert resource arbitration to electricity; include engine consumption for electricity assuming a constant speed
-- Refine model to include stoplights (energy consumed will be less when stopped but still consuming; model must make accurate prediction while accounting for total time stalled en route)
-- Include multiple vehicles into the model
-- Ideally, integrate call frequency data into model and vary destination by where these calls would likely occur and how frequently they would occur
-- Optional Refinements (Ideal, not required):
-  o Elevation data (more energy consumed uphill than downhill)
-  o Traffic data (moving obstacles + necessity to stop)
-  o Multiple fire stations
-- End Goal: Place into presentable poster and paper format
-  o Paper format can explain the process of the model's creation
-  o Poster format however should just visualize and describe the model itself
-  o Paper format should showcase results of time study + energy efficiency with quantative data
-  o Poster format should showcase summarized version of results with emphasis on why they're important
+- End Goal #1: Approved technical report
+  o Explain the process of the model's creation
+  o Showcase results with quantative data
+  o Extrapolate on usefulness of analyzed data and how this can be impelmented in future models/iterations
+- End Goal #2: Draft and approve 75% of poster design
+  o Poster format however should just visualize and describe the model and its purpose
+  o Showcase summarized version of results with emphasis on how their current usefulness and potential future prospects

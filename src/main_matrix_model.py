@@ -15,15 +15,18 @@ o Calculate shortest path from one node in space to another using a robust
 """
 
 #--Configuration--
-#loadFromFile: Boolean to allow parameters for file rather than manual entry
+#loadFromFile: If 1, load data from Excel spreadsheet; if 2, have inputs.txt override certain variables; if 3, load only inputs.txt and not the Excel spreadsheet
 #fileDir: String pointing to file location if loading data from file; ignored if loadFromFile = False
-#testFor: List variables to consider for best path selection. Consideration amounts should be from 0-1. X: Time Y: Distance Z: Elevation
-loadFromFile = True
+loadFromFile = 2
 fileDir = 'files/helloworld.xlsx'
+inputDir = 'files/inputs.txt'
 #The following can be ignored if loadFromFile = True
 #nodeAttr: Key should be node name and the first two attributes must represent X and Y positions in the graph. Attributes should be in list format.
 #pathDesired: Must be a 2D tuple made of two node names in nodeAttr
-#edgeAttr: Key should be two node names seperated by a comma (no space), first value is obstruction and second is a list of times it takes to travel along the edge.
+#edgeAttr: Key should be two node names separated by a comma (no space), first value is obstruction and second is a list of times it takes to travel along the edge.
+#numRuns: Integer of number of times the program should run before determining best path
+#obstructChance: Global floating point chance of a road being obstructed during calculation
+#testFor: List variables to consider for best path selection. Consideration amounts should be from 0-1. X: Time Y: Distance Z: Elevation
 nodeAttr = {'Station': [10,8], 'Jay-Bergman Field': [8,8], 'Softball Field': [10,6], 'CFE Arena': [8,6], 'Lake Claire': [6,6], 'Child Center': [8,4], 'Milican Hall': [6,4]}
 pathDesired = ('Station','Milican Hall')
 edgeAttr = {'Station,Jay-Bergman Field': [False,[1]]}
@@ -130,13 +133,26 @@ def main():
             
 #--Execute Program--
 nodeNeighbors = list();
-#Check to see if we are using a file
-if loadFromFile == True:
-    fileType = nop.file_check(fileDir)
-    #If the output isn't a bool, it's an excel workbook
-    if type(fileType)!=bool: 
-        fileInfo = nop.file_excel_interpret(fileDir,fileType,nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,obstructChance,testFor)
-        pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]; testFor = fileInfo[3]
+#Check to see if we are using files
+if loadFromFile:
+    try: loadFromFile+=0
+    except: print("ERROR: loadFromFile not set to a number! (Type is currently {0})".format(type(loadFromFile)))
+    else:
+        #Ensure the files are properly loaded and are the correct type
+        if loadFromFile>0 and loadFromFile<3:
+            fileType = nop.file_check(fileDir)
+            if type(fileType)!=bool: 
+                if fileType[0]=='excel':
+                    #Obtain info from excel spreadsheet
+                    fileInfo = nop.file_excel_interpret(fileDir,fileType[1],nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,obstructChance,testFor)
+                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]; testFor = fileInfo[3]
+        if loadFromFile>1: 
+            inputType = nop.file_check(inputDir)
+            if type(inputType)!=bool: 
+                if inputType[0]=='txt':
+                    #Obtain info from inputs.txt
+                    fileInfo = nop.file_inputs_interpret(inputDir,fileType[1],pathDesired,numRuns,obstructChance,testFor)
+                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]; testFor = fileInfo[3]
 #Before doing anything else, check user input for errors
 netProceed = nop.check_user_input(nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns)
 if netProceed == False: print("Please reconfigure the model to fix the issue(s) and try again.")
