@@ -62,7 +62,9 @@ def main():
         return
     #Create a path matrix for the network
     pathMatrix = nop.matrix_create(outGraph,nodeAttr,numRuns);
-        
+    #Setup relationship graphs
+    nop.relationshipGraphSetup(pathMatrix,pathDesired,numRuns);
+    
     #-Main Operating Block-
     
     #EXAMPLE: removing node 'C' then adding node 'D' and re-routing to there
@@ -124,7 +126,7 @@ def main():
         #Draw the edge labels
         nx.draw_networkx_edge_labels(outGraph,nodePos,edge_labels=edge_labels,label_pos=0.5) 
         #Draw information box
-        plt.text(1,15,'Travel Time: {0} s\nTotal Distance: {1} mi\nDelta Elevation: {2} in\n# of Runs Tested: {3}\nPower Used: {4} W'.format(round(pathMatrix[pathDesired][0][2],3),round(pathMatrix[pathDesired][0][3],3),round(pathMatrix[pathDesired][0][4],3),numRuns,round(pathMatrix[pathDesired][0][5],3)),fontsize=12,bbox=dict(facecolor='green', alpha=0.5),horizontalalignment='left')        
+        plt.text(1,15,'Travel Time: {0} s\nTotal Distance: {1} mi\nDelta Elevation: {2} in\n# of Runs Tested: {3}\nPower Used: {4} kW'.format(round(pathMatrix[pathDesired][0][2],3),round(pathMatrix[pathDesired][0][3],3),round(pathMatrix[pathDesired][0][4],3),numRuns,round(pathMatrix[pathDesired][0][5]/1000,3)),fontsize=12,bbox=dict(facecolor='green', alpha=0.5),horizontalalignment='left')        
         #Save the graph to an image file        
         plt.savefig('files/output.png')
         #Display the graph

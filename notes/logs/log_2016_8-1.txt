@@ -1,3 +1,4 @@
+Updates:
 - Drafted Research letter and awaiting feedback for revision and eventual finalization
 - Drafted first iteration of abstract; currently looking over for basic mistakes and ensuring content is appropriate
 - Reworked file_inputs_interpret
@@ -7,3 +8,8 @@
 - inputs.txt modified accordingly
   > Now has commented out versions of numerical variables for user to pick and choose to comment out
 - Added further commenting for clarification on less commented functions
+
+Todo:
+- Revise and finalize research letter
+- Revise and finalize abstract for EXCEL
+- Finish Todos from log_2016_7-13

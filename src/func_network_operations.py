@@ -4,15 +4,17 @@ import math
 import networkx as nx
 import openpyxl as xl
 import statistics as stat
+import numpy
+import matplotlib.pyplot as plt
 from numpy import random
 
 #Function to calculate the fuel cost along an edge
 def calc_fuel_cost(time,distance,elevation):
     #TODO: Calculation is currently placeholder; replace with suitable one
-    passiveConsume = 2; activeConsume = 1; heightConsume = 1.5; passiveTime = 120
-    fuel_consumed = activeConsume*distance
-    fuel_consumed += heightConsume*elevation/10
-    fuel_consumed += passiveConsume*2*(passiveTime/60)
+    activeConsume = 1; heightConsume = 2
+    fuel_consumed = activeConsume*time
+    angle = math.asin(elevation/(distance*5280))
+    fuel_consumed += heightConsume*fuel_consumed*math.sin(angle)
     return fuel_consumed
     
 #Function to get various pieces of information of shortest path from startnode to endnode and output them
@@ -40,7 +42,7 @@ def get_shortest_path_info(graph,startnode,endnode,netNodeAttr):
                     time_total+=graph[i][prevnode]['time']
                     dist_total+=graph[i][prevnode]['distance']
                     elev_total+=graph[i][prevnode]['elevation']
-                    fuel_total += calc_fuel_cost(graph[i][prevnode]['time'],graph[i][prevnode]['distance'],graph[i][prevnode]['elevation'])
+                    fuel_total+=graph[i][prevnode]['fuel']
                 elif (prevnode,i) in graph.edges():
                     #Add the edge to the list of edges along the path
                     edgelist.append((prevnode,i))
@@ -49,7 +51,7 @@ def get_shortest_path_info(graph,startnode,endnode,netNodeAttr):
                     time_total+=graph[prevnode][i]['time']
                     dist_total+=graph[prevnode][i]['distance']
                     elev_total+=graph[prevnode][i]['elevation']
-                    fuel_total += calc_fuel_cost(graph[prevnode][i]['time'],graph[prevnode][i]['distance'],graph[prevnode][i]['elevation'])
+                    fuel_total+=graph[prevnode][i]['fuel']
                 else:
                     print("Could not find edge "+(prevnode,i))
             prevnode = i
@@ -62,7 +64,8 @@ def iter_edges(graph,runIter):
     for i,j in graph.edges():
         graph[i][j]['weight']=graph[i][j]['weight_list'][runIter]
         graph[i][j]['time']=graph[i][j]['time_list'][runIter]
-
+        graph[i][j]['fuel']=graph[i][j]['fuel_list'][runIter]
+        
 #Function to initialize the path matrix
 def matrix_create(graph,netNodeAttr,netNumRuns):
     print('Creating path matrix...');
@@ -182,8 +185,8 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netTestFor,netObs
         #Get the average and standard deviation of recorded times
         timeAvg = stat.mean(edgeInfo[1]); timeStd = stat.stdev(edgeInfo[1]);
         #Create a list for time generated based on Gaussian distribution
-        #Create a list for all the weights calculated based on the above times
-        timeGen = list(); weight_list = list()
+        #Create a list for all the weights and fuel costs calculated
+        timeGen = list(); weight_list = list(); fuelCost = list()
         #Calculate the distance between the nodes on the edge
         dist = math.sqrt(math.pow(netNodeAttr[node2][2]-netNodeAttr[node1][2],2) + math.pow(netNodeAttr[node2][3]-netNodeAttr[node1][3],2));
         #Calculate the difference in height between the nodes on the edge        
@@ -193,10 +196,10 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netTestFor,netObs
             timeGen.append(abs(random.normal(timeAvg,timeStd,None)))
             #Add this time to the list of weights
             weight_list.append(timeGen[i]*netTestFor[0])
-            #Include distance as part of the weight operation
-            weight_list[i] += 100*dist*netTestFor[1]
-            #Include elevation as a part of the weight operation
-            weight_list[i] += heightdelta*netTestFor[2]
+            #Obtain the fuel consumed
+            fuelCost.append(calc_fuel_cost(timeGen[i]*netTestFor[0],dist*netTestFor[1],heightdelta*netTestFor[2]))
+            #Add this fuel cost to the weight consideration
+            weight_list[i]+= fuelCost[i]
             #Determine if the road is obstructed in this iteration
             obstructed=random.uniform(0,1)
             if obstructed <= netObstructChance: edgeInfo[0]=True
@@ -204,17 +207,19 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netTestFor,netObs
             #If the road is obstructed, set weight to an invalid value
             #TODO: Currently it just sets the weight to a high value;
             #      Find suitable NetworkX substitute if possible
-            if edgeInfo[0]==True: weight_list[i] += timeGen[i]*100;
+            if edgeInfo[0]==True: weight_list[i] += 10000;
             #If the weight is negative, set it to zero and warn the user
             if weight_list[i]<=0:
                 weight_list[i]=1
                 print("WARNING: Weight on edge [{0},{1}] was negative!".format(node1,node2))
-        #Record time list, weight list, and initial values as NetworkX edge attributes
+        #Record time list, fuel list, weight list, and initial values as NetworkX edge attributes
         graph[node1][node2]['time_list'] = timeGen;
         graph[node1][node2]['time'] = timeGen[0];        
         graph[node1][node2]['weight_list'] = weight_list;
         graph[node1][node2]['weight'] = weight_list[0];
-        graph[node1][node2]['elevation'] = heightdelta
+        graph[node1][node2]['elevation'] = heightdelta;
+        graph[node1][node2]['fuel_list'] = fuelCost;
+        graph[node1][node2]['fuel'] = fuelCost[0];
         #TODO: Refine distance to be based on more accurate formula
         graph[node1][node2]['distance'] = 86.121212*dist;
     return;
@@ -417,3 +422,94 @@ def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,net
         return False;
     elif netNumRuns > 1000: print("WARNING: Large number of times to run program (input %d)!" % netNumRuns)
     return True;
+    
+def relationshipGraphSetup(netPathMatrix,netPathDesired,netNumRuns):
+    #TODO: Currently, this function uses a lot of pasted code.
+    #      This is unfortunately due to the difference in data input and iterating through each figure.
+    #      See if this can be placed under a loop, even if large if conditions are necessary
+    #Setup variable for outputting relationship data
+    relationData = list()
+    #Setup graphical outputs for correlation
+    #Set the matplotlib figure to a new figure and setup x and y values
+    plt.figure(2); relationX = list(); relationY = list()
+    for i in range(1,netNumRuns):
+        #Set x and y values based on distance and weight
+        if netPathMatrix[netPathDesired][1][i][0] < 10000:
+            #Do not consider weight in relation if too extreme of a value
+            relationX.append(netPathMatrix[netPathDesired][1][i][3])
+            relationY.append(netPathMatrix[netPathDesired][1][i][0])
+    #Fit the data to a best fit line and place into relationship output data
+    relationData.append(numpy.polyfit(relationX, relationY, 1))
+    #Display the best fit line equation
+    tempData=relationData[len(relationData)-1].tolist()
+    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
+    #Plot the best fit line
+    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
+    #Plot the x and y values    
+    plt.scatter(relationX,relationY)
+    #Set the labels accordingly
+    plt.xlabel('Path Distance'); plt.ylabel('Path Weight');
+    #Move onto the next new figure, reset the X and Y lists and repeat
+    plt.figure(3); relationX.clear(); relationY.clear()
+    for i in range(1,netNumRuns):
+        #Set x and y values based on elevation and weight
+        if netPathMatrix[netPathDesired][1][i][0] < 10000:
+            #Do not consider weight in relation if too extreme of a value
+            relationX.append(netPathMatrix[netPathDesired][1][i][4])
+            relationY.append(netPathMatrix[netPathDesired][1][i][0])
+    relationData.append(numpy.polyfit(relationX, relationY, 1))
+    #Display the best fit line equation
+    tempData=relationData[len(relationData)-1].tolist()
+    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
+    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
+    plt.scatter(relationX,relationY)
+    plt.xlabel('Path Elevation'); plt.ylabel('Path Weight');
+    #Move onto the next new figure, reset the X and Y lists and repeat
+    plt.figure(4); relationX.clear(); relationY.clear()
+    for i in range(1,netNumRuns):
+        #Set x and y values based on time and weight
+        if netPathMatrix[netPathDesired][1][i][0] < 10000:
+            #Do not consider weight in relation if too extreme of a value
+            relationX.append(netPathMatrix[netPathDesired][1][i][2])
+            relationY.append(netPathMatrix[netPathDesired][1][i][0])
+    relationData.append(numpy.polyfit(relationX, relationY, 1))
+    #Display the best fit line equation
+    tempData=relationData[len(relationData)-1].tolist()
+    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
+    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
+    plt.scatter(relationX,relationY)
+    plt.xlabel('Path Time'); plt.ylabel('Path Weight');
+    #Move onto the next new figure, reset the X and Y lists and repeat
+    plt.figure(5); relationX.clear(); relationY.clear()
+    for i in range(1,netNumRuns):
+        #Set x and y values based on fuel consumed and weight
+        if netPathMatrix[netPathDesired][1][i][0] < 10000:
+            #Do not consider weight in relation if too extreme of a value
+            relationX.append(netPathMatrix[netPathDesired][1][i][5])
+            relationY.append(netPathMatrix[netPathDesired][1][i][0])
+    relationData.append(numpy.polyfit(relationX, relationY, 1))
+    #Display the best fit line equation
+    tempData=relationData[len(relationData)-1].tolist()
+    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
+    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
+    plt.scatter(relationX,relationY)
+    plt.xlabel('Fuel Consumed while traversing Path'); plt.ylabel('Path Weight');
+    #Move onto the next new figure, reset the X and Y lists and repeat
+    plt.figure(6); relationX.clear(); relationY.clear()
+    for i in range(1,netNumRuns):
+        #Set x and y values based on time and fuel consumed
+        relationX.append(netPathMatrix[netPathDesired][1][i][2])
+        relationY.append(netPathMatrix[netPathDesired][1][i][5])
+    relationData.append(numpy.polyfit(relationX, relationY, 1))
+    #Display the best fit line equation
+    tempData=relationData[len(relationData)-1].tolist()
+    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
+    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
+    plt.scatter(relationX,relationY)
+    plt.xlabel('Path Time'); plt.ylabel('Fuel Consumed while traversing Path');
+    #Finally, set the figure to a new entry for the model itself
+    plt.figure(1)
+    #Convert relationship output entries from numpy arrays to python lists
+    for i in range(0,len(relationData)): relationData[i]=relationData[i].tolist()
+    #Return the relationship data    
+    return relationData

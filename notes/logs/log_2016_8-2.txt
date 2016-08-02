@@ -1,0 +1,20 @@
+Updates:
+- Slightly modified calc_fuel_cost to be more a representative placeholder
+- Weight calculations reworked to now use time and fuel as the two primary considerations
+  > Fuel costs now calculated each iteration alongside time
+  > Added 'fuel' and 'fuel_list' as NetworkX edge attributes
+  > Road obstructions now add a large set weight value
+- Added function relationshipGraphSetup
+  > Sets up 5 seperate graphs displaying correlation between each input variable and weight, fuel and weight, and fuel and time
+  > Calculates and displays best-fit line equation
+  > Currently disregards cases where the best path was through an obstructed road
+  > Modified main_matrix_model accordingly to display these graphs
+- Modified log_2016_8-1.txt format to be in-line with previous logs
+
+Todo:
+- Update NetTestFor variables to adapt to reworked weight calculations
+  > Update inputs.txt accordingly to any changes made
+- Find cleaner, less code-pasting method for relationshipGraphSetup function
+- Revise and finalize research letter
+- Revise and finalize abstract for EXCEL
+- Finish Todos from log_2016_7-13
