@@ -1,0 +1,9 @@
+- Drafted Research letter and awaiting feedback for revision and eventual finalization
+- Drafted first iteration of abstract; currently looking over for basic mistakes and ensuring content is appropriate
+- Reworked file_inputs_interpret
+  > Now searches based on substring rather than counting lines
+  > Now supports commenting out line if user does not want to reconfigure a particular variable
+  > Now checks for EoF more cleanly
+- inputs.txt modified accordingly
+  > Now has commented out versions of numerical variables for user to pick and choose to comment out
+- Added further commenting for clarification on less commented functions

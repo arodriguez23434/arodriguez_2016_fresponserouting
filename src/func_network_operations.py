@@ -26,18 +26,25 @@ def get_shortest_path_info(graph,startnode,endnode,netNodeAttr):
     else:
         #Get edges and their weights/attributes along path
         edgelist = []; prevnode = startnode; 
+        #Values suffixed with _total are used for the attributes along the entire path        
         weight_total = 0; time_total = 0; dist_total = 0; elev_total = 0; fuel_total = 0
         for i in best_route:
             if (i!=startnode):
+                #Ensure that both orders of the node pair are analyzed 
+                #Neceessary due to user input vs. NetworkX registration in memory
                 if (i,prevnode) in graph.edges():
+                    #Add the edge to the list of edges along the path
                     edgelist.append((i,prevnode)) 
+                    #Add the weights and attributes of the edge to the total along the path
                     weight_total+=graph[i][prevnode]['weight']
                     time_total+=graph[i][prevnode]['time']
                     dist_total+=graph[i][prevnode]['distance']
                     elev_total+=graph[i][prevnode]['elevation']
                     fuel_total += calc_fuel_cost(graph[i][prevnode]['time'],graph[i][prevnode]['distance'],graph[i][prevnode]['elevation'])
                 elif (prevnode,i) in graph.edges():
+                    #Add the edge to the list of edges along the path
                     edgelist.append((prevnode,i))
+                    #Add the weights and attributes of the edge to the total along the path
                     weight_total+=graph[prevnode][i]['weight']
                     time_total+=graph[prevnode][i]['time']
                     dist_total+=graph[prevnode][i]['distance']
@@ -95,7 +102,7 @@ def matrix_iter(graph,netNodeAttr,netNumRuns,pathMatrix,i,j):
     except ValueError:
         for i,j in graph.edges():
             print(i,j,graph[i][j]['weight'])
-            #print("ERROR: Failed to create pathing matrix. Please check your configuration and try again.");
+        print("ERROR: Failed to create pathing matrix. Please check your configuration and try again.");
         return False
     return pathMatrix;  
     
@@ -224,6 +231,7 @@ def file_check(netFileDir):
         except:
             print("ERROR: Invalid file %s" % netFileDir)
             return False;
+    #If it is not, check if the file is a text file
     elif netFileDir.lower().endswith(('.txt')):
         try:
             with open(netFileDir,'r') as file:
@@ -232,6 +240,7 @@ def file_check(netFileDir):
         except:
             print("ERROR: Invalid file %s" % netFileDir)
             return False;
+    #If it is neither, inform user that the file type is not supported
     else:
         print("ERROR: File type was not supported (%s instead of .xlsx, .xlsm, .xltx, or .xltm)" % netFileDir[-4:])
         return False;
@@ -275,45 +284,52 @@ def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,
         #If the column is the label column, do not interpret
         if col[0].column == 'A': continue
         for cell in col:
+            #Ensure the the cell has a value of some sort, warn user if otherwise
             if cell.value == None: print("WARNING: Cell {0}{1} in spreadsheet 2 has no value!".format(cell.row,cell.column));
+            #Add the connections between nodes as defined by the 1st line        
             if cell.row == 1:
                 try:
+                    #Search for the seperator between the node names (,) and append each node to the neighbors list as a split string
                     strind = cell.value.index(',')
                     netNodeNeighbors.append([cell.value[0:strind],cell.value[strind+1:]])
                 except: print("ERROR: Edge at Cell {0}{1} in spreadsheet 2 was improperly setup! (Must be two nodes seperated by comma)".format(cell.row,cell.column))
-            elif cell.row == 2: col_values.append(cell.value)
-            else: time_values.append(cell.value)
+            #If this is the second row, register the obstructed edge value as false
+            elif cell.row == 2: col_values.append(False)
+            #All rows below the first is for registering time data
+            if cell.row > 1: time_values.append(cell.value)
+        #Append the time data to the values obtained from the column
         col_values.append(time_values)
+        #Set the attributes for each edge according to what was obtained from its column
         netEdgeAttr[col[0].value] = col_values                
     return netInfo;
     
 def file_inputs_interpret(netFileDir,file,netPathDesired,netNumRuns,netObstructChance,netTestFor):
     #Setup basic inputs for returning values
-    netInfo = list(); lineStr = str('\n'); lineCount = 0;
+    netInfo = list(); lineStr = str('\n'); pathFind = False;
     #Open the file; with parameter allows file to be closed even during exceptions
     with open(netFileDir,'r') as f:
-        while True:
+        while lineStr:
             #Read the next line
             lineStr = f.readline()
-            #If the line has no characters, assume EoF
-            if len(lineStr)<=0 and lineCount>4: break
-            #If the first character is a #, skip the line
-            if lineStr[0]=='#': continue
-            lineCount+=1;
-            #If this is the 6th line or beyond, assume it is the path desired 
-            #TODO: Check that user has only selected one path            
-            if lineCount>=6:
+            #If the read is at EoF, do not continue
+            if not lineStr: break
+            #If we have reached the Pathways category, skip to the next line and search for the path desired
+            if 'Pathways' in lineStr: pathFind = True; continue
+            #Ensure the line is not commented out
+            if pathFind and lineStr[0]!='#':
                 try:
                     strind = lineStr.index(',')
                     strend = lineStr.index('\n')
                     netPathDesired = (lineStr[0:strind],lineStr[strind+1:strend])
                 except: print("ERROR: Path desired was improperly setup!")
             #Check for specific parameters within the line and add to netInfo accordingly
-            elif 'NumberOfIterations' in lineStr: netNumRuns=int(lineStr[19:])
-            elif 'ObstructionChance' in lineStr: netObstructChance=float(lineStr[18:])
-            elif 'TimeConsideration' in lineStr: netTestFor[0]=float(lineStr[18:])
-            elif 'DistanceConsideration' in lineStr: netTestFor[1]=float(lineStr[22:])
-            elif 'ElevationConsideration' in lineStr: netTestFor[2]=float(lineStr[23:])
+            #If the first character is a #, skip the line
+            if not lineStr[0]=='#':
+                if 'NumberOfIterations' in lineStr: netNumRuns=int(lineStr[19:])
+                elif 'ObstructionChance' in lineStr: netObstructChance=float(lineStr[18:])
+                elif 'TimeConsideration' in lineStr: netTestFor[0]=float(lineStr[18:])
+                elif 'DistanceConsideration' in lineStr: netTestFor[1]=float(lineStr[22:])
+                elif 'ElevationConsideration' in lineStr: netTestFor[2]=float(lineStr[23:])
     #Return the info provided
     netInfo = [netPathDesired,netNumRuns,netObstructChance,netTestFor]
     return netInfo;
@@ -339,6 +355,7 @@ def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,net
         #TODO: Make temporary list of distances between positions and warn user
         #      if distances between a single pair are unreasonably large or zero
     for i in netEdgeAttr:
+        #Ensure the edge is properly setup with the correct syntax
         try: 
             if i.index(',')==-1: raise ValueError;
         except:
@@ -354,6 +371,7 @@ def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,net
     #Are the edges properly setup?
     for i in netNodeNeighbors:
         try:
+            #Ensure that the neighboring nodes list contains lists of exactly two values
             if type(i)!=list: raise TypeError
             if len(i)!=2:
                 print("ERROR: Edge {0} was improperly setup! ({1} attribute(s) instead of exactly 2)".format(i,len(i)))
@@ -364,6 +382,7 @@ def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,net
     #Is every node connected to an edge?
     for i in netNodeAttr.keys():
         node_occur = 0
+        #Go through each neighbor and ensure that all nodes in the nodeAttr dict can be found in the list
         for j,k in netNodeNeighbors:
             if i==j or i==k: node_occur=1; break
         if node_occur == 0:
@@ -371,10 +390,12 @@ def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,net
             return False;
     #Is the desired path valid?
     try: 
+        #Ensure that the path desired is a tuple of exactly 2 values
         if type(netPathDesired)!=tuple: raise TypeError
         if len(netPathDesired)!=2:
             print("ERROR: Path was improperly setup! (%d attribute(s) instead of exactly 2)" % len(netPathDesired))
             return False;
+        #Warn the user if the starting and ending nodes are the same
         if netPathDesired[0]==netPathDesired[1]: print("WARNING: Path does not lead anywhere! (Start and end node are both %s)" %netPathDesired[0])
     except TypeError: 
         print("ERROR: Desired route was improperly setup! (Not a tuple)")

@@ -1,10 +1,24 @@
-##Configuration
+##Configuration##
+#NumberOfIterations=25
+#NumberOfIterations=50
 NumberOfIterations=100
+#ObstructionChance=0.01
 ObstructionChance=0.1
+#ObstructionChance=0.2
+#ObstructionChance=0.3
 TimeConsideration=1.0
+#TimeConsideration=0.5
+#TimeConsideration=0.1
+#TimeConsideration=0
+#DistanceConsideration=1.0
+#DistanceConsideration=0.5
 DistanceConsideration=0.1
-ElevationConsideration=1.0
-##Pathways
+#DistanceConsideration=0
+#ElevationConsideration=1.0
+#ElevationConsideration=0.5
+ElevationConsideration=0.1
+#ElevationConsideration=0
+##Pathways##
 #Fire Station,Jay-Bergman Field
 #Fire Station,Softball Field
 #Fire Station,CFE Arena

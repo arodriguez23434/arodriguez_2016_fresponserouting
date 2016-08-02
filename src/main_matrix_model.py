@@ -130,7 +130,7 @@ def main():
         #Display the graph
         plt.show()
         #for i in range(0,numRuns): print('Run {0} - Best Path Time: {1}; Distance: {2}'.format(i,pathMatrix[pathDesired][1][i][2],pathMatrix[pathDesired][1][i][3]))
-            
+        
 #--Execute Program--
 nodeNeighbors = list();
 #Check to see if we are using files
@@ -139,15 +139,19 @@ if loadFromFile:
     except: print("ERROR: loadFromFile not set to a number! (Type is currently {0})".format(type(loadFromFile)))
     else:
         #Ensure the files are properly loaded and are the correct type
+        #Load the excel file if we are permitting it to be loaded        
         if loadFromFile>0 and loadFromFile<3:
             fileType = nop.file_check(fileDir)
+            #Ensure that the file is real and the correct type
             if type(fileType)!=bool: 
                 if fileType[0]=='excel':
                     #Obtain info from excel spreadsheet
                     fileInfo = nop.file_excel_interpret(fileDir,fileType[1],nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,obstructChance,testFor)
                     pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]; testFor = fileInfo[3]
+        #Load the inputs.txt file if we are permitting it to be loaded 
         if loadFromFile>1: 
             inputType = nop.file_check(inputDir)
+            #Ensure that the file is real and the correct type
             if type(inputType)!=bool: 
                 if inputType[0]=='txt':
                     #Obtain info from inputs.txt
