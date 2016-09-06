@@ -6,7 +6,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from scipy.misc import imread
 import func_network_operations as nop
-
+import func_relationship_graphing as rgraph
 
 """
 Objective:
@@ -17,7 +17,7 @@ o Calculate shortest path from one node in space to another using a robust
 #--Configuration--
 #loadFromFile: If 1, load data from Excel spreadsheet; if 2, have inputs.txt override certain variables; if 3, load only inputs.txt and not the Excel spreadsheet
 #fileDir: String pointing to file location if loading data from file; ignored if loadFromFile = False
-loadFromFile = 2
+loadFromFile = 1
 fileDir = 'files/helloworld.xlsx'
 inputDir = 'files/inputs.txt'
 #The following can be ignored if loadFromFile = True
@@ -26,13 +26,11 @@ inputDir = 'files/inputs.txt'
 #edgeAttr: Key should be two node names separated by a comma (no space), first value is obstruction and second is a list of times it takes to travel along the edge.
 #numRuns: Integer of number of times the program should run before determining best path
 #obstructChance: Global floating point chance of a road being obstructed during calculation
-#testFor: List variables to consider for best path selection. Consideration amounts should be from 0-1. X: Time Y: Distance Z: Elevation
 nodeAttr = {'Station': [10,8], 'Jay-Bergman Field': [8,8], 'Softball Field': [10,6], 'CFE Arena': [8,6], 'Lake Claire': [6,6], 'Child Center': [8,4], 'Milican Hall': [6,4]}
 pathDesired = ('Station','Milican Hall')
 edgeAttr = {'Station,Jay-Bergman Field': [False,[1]]}
 numRuns = 100
 obstructChance = 0.1
-testFor = [1,0,1]
 #--End of Configuration--
 
 #--Main Function--
@@ -56,14 +54,14 @@ def main():
         outGraph.node[i]['pos'] = p;
     try:
         #NetworkX uses a universal 'weight' attribute for edges for its algorithms
-        nop.calc_edge_weights(outGraph,nodeAttr,edgeAttr,numRuns,testFor,obstructChance)
+        nop.calc_edge_weights(outGraph,nodeAttr,edgeAttr,numRuns,obstructChance)
     except KeyError:
         print("ERROR: Found node in nodeNeighbors that does not exist in nodeAttr!")
         return
     #Create a path matrix for the network
     pathMatrix = nop.matrix_create(outGraph,nodeAttr,numRuns);
     #Setup relationship graphs
-    nop.relationshipGraphSetup(pathMatrix,pathDesired,numRuns);
+    rgraph.relationshipGraphSetup(pathMatrix,pathDesired,numRuns);
     
     #-Main Operating Block-
     
@@ -72,7 +70,7 @@ def main():
 #    except: print("ERROR: Failed to remove node (input error)")    
 #    try: 
 #        addNode = 'Teaching Academy'
-#        pathMatrix = nop.network_add_node(addNode,[12,60,28.597363,-81.203363,-5],{addNode+',Lake Claire': [False,[100,200]],addNode+',Early Childhood Center': [False,[100,200]]},outGraph,nodeAttr,edgeAttr,nodePos,pathMatrix,numRuns,testFor,obstructChance)
+#        pathMatrix = nop.network_add_node(addNode,[12,60,28.597363,-81.203363,-5],{addNode+',Lake Claire': [False,[100,200]],addNode+',Early Childhood Center': [False,[100,200]]},outGraph,nodeAttr,edgeAttr,nodePos,pathMatrix,numRuns,obstructChance)
 #    except: print("ERROR: Failed to add node (input error)")    
 #    pathDesired = ('Fire Station','Teaching Academy')
         
@@ -148,8 +146,8 @@ if loadFromFile:
             if type(fileType)!=bool: 
                 if fileType[0]=='excel':
                     #Obtain info from excel spreadsheet
-                    fileInfo = nop.file_excel_interpret(fileDir,fileType[1],nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,obstructChance,testFor)
-                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]; testFor = fileInfo[3]
+                    fileInfo = nop.file_excel_interpret(fileDir,fileType[1],nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,obstructChance)
+                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]
         #Load the inputs.txt file if we are permitting it to be loaded 
         if loadFromFile>1: 
             inputType = nop.file_check(inputDir)
@@ -157,8 +155,8 @@ if loadFromFile:
             if type(inputType)!=bool: 
                 if inputType[0]=='txt':
                     #Obtain info from inputs.txt
-                    fileInfo = nop.file_inputs_interpret(inputDir,fileType[1],pathDesired,numRuns,obstructChance,testFor)
-                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]; testFor = fileInfo[3]
+                    fileInfo = nop.file_inputs_interpret(inputDir,fileType[1],pathDesired,numRuns,obstructChance)
+                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]
 #Before doing anything else, check user input for errors
 netProceed = nop.check_user_input(nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns)
 if netProceed == False: print("Please reconfigure the model to fix the issue(s) and try again.")

@@ -4,8 +4,6 @@ import math
 import networkx as nx
 import openpyxl as xl
 import statistics as stat
-import numpy
-import matplotlib.pyplot as plt
 from numpy import random
 
 #Function to calculate the fuel cost along an edge
@@ -135,7 +133,7 @@ def network_remove_node(node,graph,netNodeAttr,netEdgeAttr,netNodePos,pathMatrix
     return newMatrix;
 
 #Function to add a node with attribute list addNodeAttr and list of connecting neighbors to all network-related items
-def network_add_node(node,addNodeAttr,addEdgeAttr,graph,netNodeAttr,netEdgeAttr,netNodePos,pathMatrix,netNumRuns,netTestFor,netObstructChance):
+def network_add_node(node,addNodeAttr,addEdgeAttr,graph,netNodeAttr,netEdgeAttr,netNodePos,pathMatrix,netNumRuns,netObstructChance):
     try: type(addNodeAttr[1])
     except: print("ERROR: Invalid node attribute input! (Must be list of at least 2 values)")
     else:    
@@ -163,7 +161,7 @@ def network_add_node(node,addNodeAttr,addEdgeAttr,graph,netNodeAttr,netEdgeAttr,
                     graph.add_edge(node,connect)
                 except KeyError: print("ERROR: Failed to connect node to neighbors! (Attempted to connect to nonexistent neighbor)")            
             #Calculate the new edge weights
-            try: calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netTestFor,netObstructChance)
+            try: calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netObstructChance)
             except: print("ERROR: Failed to calculate weights on edges!")
         except TypeError: print("ERROR: Failed to connect node to neighbors! (Node attributes were not a list of at least 2 elements)")            
         #Retrieve all possible paths and add to path matrix
@@ -176,7 +174,7 @@ def network_add_node(node,addNodeAttr,addEdgeAttr,graph,netNodeAttr,netEdgeAttr,
                 return False
     return pathMatrix;
 
-def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netTestFor,netObstructChance):
+def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netObstructChance):
     for node1,node2 in graph.edges():
         #Try to get info about the edge from edgeAttr
         #Before throwing an exception, check if networkX ordered the key backwards
@@ -195,9 +193,9 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netTestFor,netObs
             #Generate a time based on Gaussian distribution of input times
             timeGen.append(abs(random.normal(timeAvg,timeStd,None)))
             #Add this time to the list of weights
-            weight_list.append(timeGen[i]*netTestFor[0])
+            weight_list.append(timeGen[i])
             #Obtain the fuel consumed
-            fuelCost.append(calc_fuel_cost(timeGen[i]*netTestFor[0],dist*netTestFor[1],heightdelta*netTestFor[2]))
+            fuelCost.append(calc_fuel_cost(timeGen[i],dist,heightdelta))
             #Add this fuel cost to the weight consideration
             weight_list[i]+= fuelCost[i]
             #Determine if the road is obstructed in this iteration
@@ -250,7 +248,7 @@ def file_check(netFileDir):
         print("ERROR: File type was not supported (%s instead of .xlsx, .xlsm, .xltx, or .xltm)" % netFileDir[-4:])
         return False;
 
-def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns,netObstructChance,netTestFor):
+def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns,netObstructChance):
     #Since we are no longer using the in-line config, clear inputs
     netNodeAttr.clear(); netEdgeAttr.clear(); netNodeNeighbors[:] = []
     #Load the 1st worksheet in the excel workbook  (nodeAttr)   
@@ -266,9 +264,8 @@ def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,
                 #If the row is the configuration row, set all the info to a variable to return to the main function
                 netPathDesired = (row[0].value,row[1].value)
                 netNumRuns = row[2].value
-                netObstructChance = row[6].value
-                netTestFor = [row[3].value,row[4].value,row[5].value]
-                netInfo = [netPathDesired,netNumRuns,netObstructChance,netTestFor]
+                netObstructChance = row[3].value
+                netInfo = [netPathDesired,netNumRuns,netObstructChance]
             except: print("ERROR: Failed to retrieve configuration data from spreadsheet 1!")
             continue
         for cell in row:
@@ -308,7 +305,7 @@ def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,
         netEdgeAttr[col[0].value] = col_values                
     return netInfo;
     
-def file_inputs_interpret(netFileDir,file,netPathDesired,netNumRuns,netObstructChance,netTestFor):
+def file_inputs_interpret(netFileDir,file,netPathDesired,netNumRuns,netObstructChance):
     #Setup basic inputs for returning values
     netInfo = list(); lineStr = str('\n'); pathFind = False;
     #Open the file; with parameter allows file to be closed even during exceptions
@@ -332,13 +329,11 @@ def file_inputs_interpret(netFileDir,file,netPathDesired,netNumRuns,netObstructC
             if not lineStr[0]=='#':
                 if 'NumberOfIterations' in lineStr: netNumRuns=int(lineStr[19:])
                 elif 'ObstructionChance' in lineStr: netObstructChance=float(lineStr[18:])
-                elif 'TimeConsideration' in lineStr: netTestFor[0]=float(lineStr[18:])
-                elif 'DistanceConsideration' in lineStr: netTestFor[1]=float(lineStr[22:])
-                elif 'ElevationConsideration' in lineStr: netTestFor[2]=float(lineStr[23:])
     #Return the info provided
-    netInfo = [netPathDesired,netNumRuns,netObstructChance,netTestFor]
+    netInfo = [netPathDesired,netNumRuns,netObstructChance]
     return netInfo;
 
+#TODO: Should check_user_input be moved to its own file, and split into multiple functions?
 def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns):
     #Are the nodes properly setup?
     for i in netNodeAttr.values():
@@ -359,6 +354,7 @@ def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,net
                 return False;
         #TODO: Make temporary list of distances between positions and warn user
         #      if distances between a single pair are unreasonably large or zero
+        #      Is this a reasonable way to approach this without completely draining resources?
     for i in netEdgeAttr:
         #Ensure the edge is properly setup with the correct syntax
         try: 
@@ -422,94 +418,3 @@ def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,net
         return False;
     elif netNumRuns > 1000: print("WARNING: Large number of times to run program (input %d)!" % netNumRuns)
     return True;
-    
-def relationshipGraphSetup(netPathMatrix,netPathDesired,netNumRuns):
-    #TODO: Currently, this function uses a lot of pasted code.
-    #      This is unfortunately due to the difference in data input and iterating through each figure.
-    #      See if this can be placed under a loop, even if large if conditions are necessary
-    #Setup variable for outputting relationship data
-    relationData = list()
-    #Setup graphical outputs for correlation
-    #Set the matplotlib figure to a new figure and setup x and y values
-    plt.figure(2); relationX = list(); relationY = list()
-    for i in range(1,netNumRuns):
-        #Set x and y values based on distance and weight
-        if netPathMatrix[netPathDesired][1][i][0] < 10000:
-            #Do not consider weight in relation if too extreme of a value
-            relationX.append(netPathMatrix[netPathDesired][1][i][3])
-            relationY.append(netPathMatrix[netPathDesired][1][i][0])
-    #Fit the data to a best fit line and place into relationship output data
-    relationData.append(numpy.polyfit(relationX, relationY, 1))
-    #Display the best fit line equation
-    tempData=relationData[len(relationData)-1].tolist()
-    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
-    #Plot the best fit line
-    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
-    #Plot the x and y values    
-    plt.scatter(relationX,relationY)
-    #Set the labels accordingly
-    plt.xlabel('Path Distance'); plt.ylabel('Path Weight');
-    #Move onto the next new figure, reset the X and Y lists and repeat
-    plt.figure(3); relationX.clear(); relationY.clear()
-    for i in range(1,netNumRuns):
-        #Set x and y values based on elevation and weight
-        if netPathMatrix[netPathDesired][1][i][0] < 10000:
-            #Do not consider weight in relation if too extreme of a value
-            relationX.append(netPathMatrix[netPathDesired][1][i][4])
-            relationY.append(netPathMatrix[netPathDesired][1][i][0])
-    relationData.append(numpy.polyfit(relationX, relationY, 1))
-    #Display the best fit line equation
-    tempData=relationData[len(relationData)-1].tolist()
-    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
-    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
-    plt.scatter(relationX,relationY)
-    plt.xlabel('Path Elevation'); plt.ylabel('Path Weight');
-    #Move onto the next new figure, reset the X and Y lists and repeat
-    plt.figure(4); relationX.clear(); relationY.clear()
-    for i in range(1,netNumRuns):
-        #Set x and y values based on time and weight
-        if netPathMatrix[netPathDesired][1][i][0] < 10000:
-            #Do not consider weight in relation if too extreme of a value
-            relationX.append(netPathMatrix[netPathDesired][1][i][2])
-            relationY.append(netPathMatrix[netPathDesired][1][i][0])
-    relationData.append(numpy.polyfit(relationX, relationY, 1))
-    #Display the best fit line equation
-    tempData=relationData[len(relationData)-1].tolist()
-    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
-    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
-    plt.scatter(relationX,relationY)
-    plt.xlabel('Path Time'); plt.ylabel('Path Weight');
-    #Move onto the next new figure, reset the X and Y lists and repeat
-    plt.figure(5); relationX.clear(); relationY.clear()
-    for i in range(1,netNumRuns):
-        #Set x and y values based on fuel consumed and weight
-        if netPathMatrix[netPathDesired][1][i][0] < 10000:
-            #Do not consider weight in relation if too extreme of a value
-            relationX.append(netPathMatrix[netPathDesired][1][i][5])
-            relationY.append(netPathMatrix[netPathDesired][1][i][0])
-    relationData.append(numpy.polyfit(relationX, relationY, 1))
-    #Display the best fit line equation
-    tempData=relationData[len(relationData)-1].tolist()
-    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
-    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
-    plt.scatter(relationX,relationY)
-    plt.xlabel('Fuel Consumed while traversing Path'); plt.ylabel('Path Weight');
-    #Move onto the next new figure, reset the X and Y lists and repeat
-    plt.figure(6); relationX.clear(); relationY.clear()
-    for i in range(1,netNumRuns):
-        #Set x and y values based on time and fuel consumed
-        relationX.append(netPathMatrix[netPathDesired][1][i][2])
-        relationY.append(netPathMatrix[netPathDesired][1][i][5])
-    relationData.append(numpy.polyfit(relationX, relationY, 1))
-    #Display the best fit line equation
-    tempData=relationData[len(relationData)-1].tolist()
-    plt.text(relationX[round(len(relationX)/2)],relationY[round(len(relationY)/2)],'y = {0}x + {1}'.format(round(tempData[0],3),round(tempData[1],3)))
-    plt.plot(relationX, numpy.poly1d(relationData[len(relationData)-1])(relationX))
-    plt.scatter(relationX,relationY)
-    plt.xlabel('Path Time'); plt.ylabel('Fuel Consumed while traversing Path');
-    #Finally, set the figure to a new entry for the model itself
-    plt.figure(1)
-    #Convert relationship output entries from numpy arrays to python lists
-    for i in range(0,len(relationData)): relationData[i]=relationData[i].tolist()
-    #Return the relationship data    
-    return relationData
