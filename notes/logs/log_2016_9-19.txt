@@ -1,0 +1,16 @@
+Updates:
+- Fixed issue with resolution of map failing to be complaint with settings on 1st run of program
+- Moved function check_user_input() from func_network_operations to new file (func_check_input)
+- Function check_user_input() split into several functions for readability, ease of debugging and potential modularity if new elements need to be added
+  > check_user_nodes() performs check to see if nodes are properly setup in netNodeAttr and that no duplicates occur
+  > check_user_edges() performs check for edge syntax, neighbor syntax, and that every node is connected in the network
+  > check_user_distances() is an entirely new function that iterates through each connected node to store their distances, then warns the user if one node has a very large or small distance from another (and errors out if the distance is too large compared to the average + X standard deviations)
+  > check_user_path() performs check for the path syntax and existance of nodes along path
+- General code cleanup
+
+Todo:
+- Research prior studies for fuel costs and approach to related problems 
+   > Replace fuel cost calculation formula with more accurate measurements from these studies
+   > Base analysis on any particularly notable parameters determined from these studies
+- Replace placeholder elevations with values from a recent topographical map
+- Update syllabus to reflect all current changes

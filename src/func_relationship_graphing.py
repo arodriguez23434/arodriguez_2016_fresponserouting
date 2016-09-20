@@ -3,10 +3,6 @@
 import numpy
 import matplotlib.pyplot as plt
 
-#TODO: Previous use of this file was due to a large function size;
-#      since this is no longer the case, should it be merged with
-#      func_network_operations or stay in its own file?
-
 def lineAndLabel(relationX,relationY,relationData,xlabelparam,ylabelparam,figureiter):
     #Fit the data to a best fit line and place into relationship output data
     relationData.append(numpy.polyfit(relationX, relationY, 1))

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.misc import imread
 import func_network_operations as nop
 import func_relationship_graphing as rgraph
+import func_check_input as inpchk
 
 """
 Objective:
@@ -31,6 +32,8 @@ pathDesired = ('Station','Milican Hall')
 edgeAttr = {'Station,Jay-Bergman Field': [False,[1]]}
 numRuns = 100
 obstructChance = 0.1
+#Set the image size in inches
+rcParams['figure.figsize'] = 10, 10
 #--End of Configuration--
 
 #--Main Function--
@@ -83,7 +86,7 @@ def main():
         #Output the best path
         print("Best path to destination from {0} to {1} is to take {2}".format(pathDesired[0],pathDesired[1],pathMatrix[pathDesired][0][1]))
         #Set the image size in inches
-        rcParams['figure.figsize'] = 10, 10
+        #rcParams['figure.figsize'] = 10, 10
         #Define a list of colors that each edge will have based on route desired
         edge_colors = ['gray' if not i in pathMatrix[pathDesired][0][1] else 'green' for i in outGraph.edges()]
         #Set sizes of edges and nodes; edges scale based on whether or not in path
@@ -158,6 +161,6 @@ if loadFromFile:
                     fileInfo = nop.file_inputs_interpret(inputDir,fileType[1],pathDesired,numRuns,obstructChance)
                     pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]
 #Before doing anything else, check user input for errors
-netProceed = nop.check_user_input(nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns)
+netProceed = inpchk.check_user_input(nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns)
 if netProceed == False: print("Please reconfigure the model to fix the issue(s) and try again.")
 else: main()
