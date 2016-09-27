@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import math
+from math import pow
+from math import sqrt
 
 def check_user_nodes(netNodeAttr):
     #Are the nodes properly setup?
@@ -62,7 +63,7 @@ def check_user_edges(netNodeAttr,netEdgeAttr,netNodeNeighbors):
 def check_user_distances(netNodeAttr,netNodeNeighbors):
     #Set the number of standard deviations permitted
     #One to error out and the other to warn the user
-    std_allowed = 3; std_warn = 1
+    std_allowed = 3; std_warn = 1.5
     #Make a list of all the distances between connected nodes
     temp_dist = list(); temp_dist_ref = list(); i_iter = 0;
     node1 = [0,0]; node2 = [0,0]; temp_avg = 0; temp_std = 0
@@ -72,7 +73,7 @@ def check_user_distances(netNodeAttr,netNodeNeighbors):
             if i==k[0]: node1=[k[1][0],k[1][1],k[0]];
             elif j==k[0]: node2=[k[1][0],k[1][1],k[0]];
         #Calculate the distance between the two nodes
-        dist = math.sqrt(math.pow(node2[1]-node1[1],2)+math.pow(node2[0]-node1[0],2))
+        dist = sqrt(pow(node2[1]-node1[1],2)+pow(node2[0]-node1[0],2))
         #Store the difference and the nodes' references
         temp_dist.append(dist)
         temp_dist_ref.append([node1[2],node2[2]])
@@ -81,9 +82,9 @@ def check_user_distances(netNodeAttr,netNodeNeighbors):
     #Calculate the average distance
     temp_avg = temp_avg/len(temp_dist)
     #Calculate the variance of the distances
-    for i in temp_dist: temp_std+=math.pow((i-temp_avg),2)
+    for i in temp_dist: temp_std+=pow((i-temp_avg),2)
     #Calculate the standard deviation of the distances
-    temp_std = math.sqrt(temp_std/(len(temp_dist)-1))
+    temp_std = sqrt(temp_std/(len(temp_dist)-1))
     #Check the distances to see if they fall within control limits
     for i in temp_dist:
         if i > (temp_avg+(std_warn*temp_std)):

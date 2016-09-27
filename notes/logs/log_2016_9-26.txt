@@ -1,0 +1,13 @@
+Updates:
+- Updated syllabus to reflect all current changes
+- Cleaned up documentation and formatting in main_matrix_model
+- Changed edge_avg_weight to edge_avg_distance to reflect actual use
+- Changed map image to load from configurable imageDir rather than being hard-coded
+- Added display of correlation and p-value to graphs
+- Changed some full imports to function imports for optimization purposes
+
+Todo:
+- Research prior studies for fuel costs and approach to related problems 
+   > Replace fuel cost calculation formula with more accurate measurements from these studies
+   > Base analysis on any particularly notable parameters determined from these studies
+- Replace placeholder elevations with values from a recent topographical map

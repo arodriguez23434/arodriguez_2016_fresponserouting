@@ -3,7 +3,8 @@
 import math
 import networkx as nx
 import openpyxl as xl
-import statistics as stat
+from statistics import stdev
+from statistics import mean
 from numpy import random
 
 #Function to calculate the fuel cost along an edge
@@ -181,7 +182,7 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netObstructChance
         try: edgeInfo=netEdgeAttr[str(node1+','+node2)]
         except KeyError: edgeInfo=netEdgeAttr[str(node2+','+node1)]
         #Get the average and standard deviation of recorded times
-        timeAvg = stat.mean(edgeInfo[1]); timeStd = stat.stdev(edgeInfo[1]);
+        timeAvg = mean(edgeInfo[1]); timeStd = stdev(edgeInfo[1]);
         #Create a list for time generated based on Gaussian distribution
         #Create a list for all the weights and fuel costs calculated
         timeGen = list(); weight_list = list(); fuelCost = list()

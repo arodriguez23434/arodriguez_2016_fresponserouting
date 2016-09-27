@@ -22,7 +22,7 @@ Summer 2016
   o Have seperate variables for real positions versus projected 
 positions
 - Introduce file I/O to model for simplified testing and updating
-  o EXCEL Spreadsheet which can be read and updated easily
+  o Excel Spreadsheet which can be read and updated easily
   o inputs.txt file to allow user to comment out and remove comments for simulation preferences
     > Use for both purpose of model configuration as well as testing specific inputs/outputs
 - Output measured weights, determined path and all relevant inputs
@@ -34,30 +34,36 @@ positions
   o Decision-making process must change according to resource count
     > Low resource should force route to cycle back to the station before continuing
 - Draft, revise and submit a research letter regarding the project, its goals, its parameters, current function and future tasks
-- Create a 230-250 approved abstract as required by EXCEL
+- Create a 230-250 approved abstract as required by EXCEL Program
 
 Fall 2016
-- Improve formulas utilized for calculating distance and elevation between nodes
-   o May require heightmap or elevation data input for accuracy
 - Provide relevant graphical outputs to show relationship and importance of particular inputs to resulting trip
-- Convert resource arbitration to electricity; include engine consumption for electricity assuming a constant speed
-- Refine model to include stoplights (energy consumed will be less when stopped but still consuming; model must make accurate prediction while accounting for total time stalled en route)
+- Clean up code, verify/add to documentation and ensure robustness of model
+  o Remove any obsolete modules or functions
+  o Repair or realign old functions to suit needs of new functions
+  o Test model under entirely different geographical conditions and different parameters
+  o Fix any known issues in current form
+- Improve formulas utilized for calculating distance and elevation between nodes based on literature review
+  o May require heightmap or elevation data input for accuracy
+- Improve fuel calculations based on findings in literature review
 - Ideally, integrate call frequency data into model and vary destination by where these calls would likely occur and how frequently they would occur
-- Implement Google Maps roads into model, if possible
-  o Focus primarily on obtaining road data
-    > Understand various output formats
-  o Create over-simplified test routing model
-    > Simple "branching paths" linear model to same destination
-    > Understand decision-making functionality in particular
-    > Intended as a non-flexible test for learning tools 
-  o Implement multiple destinations
+- If possible, implement Google Maps roads into model
+  o Learn input and output formats provided by API
+  o Map road data to local positions
   o Automate the process of node placement, if possible
     > If not, ensure node placement matches with static road data
   o Ensure routing is consistent with static road data
+    > Can be approximated/simplified rather than exact
+- If precision is required for routing, create "sub-node" system between major nodes
+  o Pathing calculations based on iterating through these sub-node trails
+    > All functionally NetworkX node types, but defined as separate dictionaries for all other purposes
+    > Associate sub-node list with a tuple/list of two nodes; dictionary can be used for this purpose
+  o If simplistic model is preferred, ignore this step
 - End Goal #1: Approved technical report
   o Explain the process of the model's creation
-  o Showcase results with quantative data
-  o Extrapolate on usefulness of analyzed data and how this can be impelmented in future models/iterations
+  o Demonstrate foundational knowledge and cite from literature review throughout
+  o Showcase results with quantitative data
+  o Extrapolate on usefulness of analyzed data and how this can be implemented in future models/iterations
 - End Goal #2: Draft and approve 75% of poster design
   o Poster format however should just visualize and describe the model and its purpose
   o Showcase summarized version of results with emphasis on how their current usefulness and potential future prospects
