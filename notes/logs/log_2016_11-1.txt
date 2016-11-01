@@ -1,0 +1,33 @@
+Updates:
+- Temporarily disabled relationship graphs while more suitable visuals are determined
+- Reworked program to be continuously running rather than single-run
+  > User is prompted to continue further operation each time
+  > All network calculations are performed in a new init() function and any initialization occurs in this function
+  > Large network calculations are simply referenced from the output init() when performing main() over multiple iterations for efficiency and preventing redundancy
+  > Number of iterations is counted and no prompt is provided for 1st operation
+  > Reworked main() function to accept any necessary inputs from init() and output as necessary
+  > New inputs/variables: starting/current fuel, starting/current time of operation, station node
+    o Changes according to path traversed and reported each operation
+    o Station node determines "origin point" for vehicle to return to if re-fueling is required
+- Reworked how desired path is weighted
+  > Two matrices initially created: time-centric and fuel-centric; data in both is from same edge calculations/seed, but best paths are determined entirely on time/fuel respectively rather than a combination of the two
+  > New input variable pathType determines which matrix to reference
+- pathType determined by user input and by new function path_decide_destination
+  > Function mostly placeholder for interpreting frequency data
+  > Asks for user input of next destination if no frequency data is given; defaults pathType to 0 (best path determined by shortest travel time)
+  > If current fuel is too low to perform another two operations, forces vehicle to path to station node with pathType 1 (fuel-efficient)
+- Report now printed at end of every operation
+  > Displays amount of time and fuel cost for the quickest path and the most fuel-efficient path as well as which of the two were chosen
+  > Provides data on current time, current fuel, and number of operations performed
+  
+Todo:
+- Add function to check numerical value validation (i.e. numRuns, obstructChance, fuelStart, timeStart, pathType)
+- Add support for path_decide_destination to interpret frequency data
+    > If only calls/times are given, break down into probabilities
+    > Probabilities should be organized by both location and time
+    > Set destNode according to highest probable location based on currTime (mainData[1])
+- Update syllabus to reflect current project direction
+- Get exact fuel consumption formula from literature
+- Obtain data on emergency response time while on site from literature
+- Prepare more suitable correlation/statistical visuals for new weight system
+- Replace placeholder elevations with values from a recent topographical map

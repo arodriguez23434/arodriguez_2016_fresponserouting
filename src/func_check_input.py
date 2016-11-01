@@ -102,7 +102,7 @@ def check_user_distances(netNodeAttr,netNodeNeighbors):
     #If no issues appear, proceed
     return True
 
-def check_user_path(netNodeAttr,netPathDesired):
+def check_user_path(netNodeAttr,netPathDesired,netStationNode):
     #Is the desired path valid?
     try: 
         #Ensure that the path desired is a tuple of exactly 2 values
@@ -116,23 +116,29 @@ def check_user_path(netNodeAttr,netPathDesired):
         print("ERROR: Desired route was improperly setup! (Not a tuple)")
         return False;
     #Do the nodes in the path desired exist?
-    node_occur_a = 0; node_occur_b = 0
+    node_occur_a = 0; node_occur_b = 0; node_occur_station = 0
     for i in netNodeAttr.keys():
         if i == netPathDesired[0]: node_occur_a+=1
         elif i == netPathDesired[1]: node_occur_b+=1
+        if i == netStationNode: node_occur_station+=1
     if node_occur_a<=0:
         print("ERROR: Start node %s on desired route does not exist!" % netPathDesired[0])
         return False;
     elif node_occur_b<=0:
         print("ERROR: End node %s on desired route does not exist!" % netPathDesired[1])
         return False;
-
-def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns):
+    elif node_occur_station<=0:
+        print("ERROR: Station node %s on desired route does not exist!" % netPathDesired[1])
+        return False;
+        
+#TODO: Add function to check numerical value validation (i.e. numRuns, obstructChance, fuelStart, timeStart, pathType)
+        
+def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns,netStationNode):
     #Check every portion of the user input for validity and reasonability
     if (check_user_nodes(netNodeAttr)==False): return False
     if (check_user_edges(netNodeAttr,netEdgeAttr,netNodeNeighbors)==False): return False
     if (check_user_distances(netNodeAttr,netNodeNeighbors)==False): return False
-    if (check_user_path(netNodeAttr,netPathDesired)==False): return False
+    if (check_user_path(netNodeAttr,netPathDesired,netStationNode)==False): return False
     #Check if the number of iterations is reasonable
     if netNumRuns < 1:
         print("ERROR: Number of times to run program is less than 1 (input %d)!" % netNumRuns)

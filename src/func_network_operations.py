@@ -13,7 +13,7 @@ def calc_fuel_cost(time,distance,elevation):
     activeConsume = 1; heightConsume = 2
     fuel_consumed = activeConsume*time
     angle = math.asin(elevation/(distance*5280))
-    fuel_consumed += heightConsume*fuel_consumed*math.sin(angle)
+    fuel_consumed += abs(heightConsume*fuel_consumed*math.sin(angle))
     return fuel_consumed
     
 #Function to get various pieces of information of shortest path from startnode to endnode and output them
@@ -58,7 +58,7 @@ def get_shortest_path_info(graph,startnode,endnode,netNodeAttr):
         info = [weight_total,edgelist,time_total,dist_total,elev_total,fuel_total]
         return info;
 
-#Iterate over generated times/weights based on Gaussian distribution
+#Iterate over generated times/weights based on normal distribution
 def iter_edges(graph,runIter):
     for i,j in graph.edges():
         graph[i][j]['weight']=graph[i][j]['weight_list'][runIter]
@@ -81,6 +81,8 @@ def matrix_iter(graph,netNodeAttr,netNumRuns,pathMatrix,i,j):
     try:
         #Create a list for each path over netNumRuns iterations and final "best of best" path 
         best_path = list(); all_paths = list(); saveIter = 0
+        #Count the number of times the best path is repeated
+        pathRepeats = 0
         for runIter in range(0,netNumRuns):
             iter_edges(graph,runIter);
             #Calculate the distance between every path
@@ -93,13 +95,14 @@ def matrix_iter(graph,netNodeAttr,netNumRuns,pathMatrix,i,j):
                 elif pathinfo[0]<best_path[0]: 
                     best_path = pathinfo
                     saveIter = runIter
+                if best_path[1]==pathinfo[1]: pathRepeats+=1;
                 #Append the path to all potential paths
                 all_paths.append(pathinfo)
             #If an error occurs, raise an exception
             else: raise nx.NetworkXNoPath()
         #If the path lists are valid, set the pathMatrix entry to them
         if best_path and all_paths: 
-            pathMatrix[(i,j)] = [best_path,all_paths,saveIter]
+            pathMatrix[(i,j)] = [best_path,all_paths,saveIter,pathRepeats]
         else: raise nx.NetworkXNoPath()
     except ValueError:
         for i,j in graph.edges():
@@ -197,8 +200,6 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netObstructChance
             weight_list.append(timeGen[i])
             #Obtain the fuel consumed
             fuelCost.append(calc_fuel_cost(timeGen[i],dist,heightdelta))
-            #Add this fuel cost to the weight consideration
-            weight_list[i]+= fuelCost[i]
             #Determine if the road is obstructed in this iteration
             obstructed=random.uniform(0,1)
             if obstructed <= netObstructChance: edgeInfo[0]=True
@@ -222,6 +223,50 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netObstructChance
         #TODO: Refine distance to be based on more accurate formula
         graph[node1][node2]['distance'] = 86.121212*dist;
     return;
+
+def edge_weight_type(graph,netEdgeAttr,netNumRuns,edgeType):
+    for node1,node2 in graph.edges():
+        #Try to get info about the edge from edgeAttr
+        #Before throwing an exception, check if networkX ordered the key backwards
+        try: edgeInfo=netEdgeAttr[str(node1+','+node2)]
+        except KeyError: edgeInfo=netEdgeAttr[str(node2+','+node1)]
+        #Scale the edge weights based on user input    
+        for i in range(0,netNumRuns): 
+            if (edgeType == 0):
+                #Weigh based on time
+                graph[node1][node2]['weight_list'][i] = graph[node1][node2]['time_list'][i]
+            elif (edgeType == 1):
+                #Weigh based on fuel
+                graph[node1][node2]['weight_list'][i] = graph[node1][node2]['fuel_list'][i]
+            #If the road is obstructed, set weight to an invalid value
+            #TODO: Currently it just sets the weight to a high value;
+            #      Find suitable NetworkX substitute if possible
+            if edgeInfo[0]==True: graph[node1][node2]['weight_list'][i] += 10000;
+    return;
+
+def path_decide_destination(netNodeAttr,mainData,fuelList,netPathDesired,netStationNode,netFileExists,netFileDir):
+    #Initialize starting/destination nodes and path type recommendation
+    startNode = netPathDesired[1]; destNode = netPathDesired[0]; pathTypeSuggest = 0 
+    #First, check if the vehicle has enough fuel to afford to go to another location
+    if (len(fuelList)>1): fuelCompare = mean(fuelList)+(3*stdev(fuelList));
+    else: fuelCompare = fuelList[0]*2;
+    #If the vehicle does not have fuel within 3 standard deviations of all trips taken so far, bring back to station
+    if (fuelCompare)>mainData[0]: startNode = netPathDesired[1]; destNode = netStationNode; pathTypeSuggest = 1
+    #If the vehicle has enough fuel, continue
+    else:
+        #If we do not have frequency data
+        if netFileExists==False:
+            #Set the suggested path type to 2 and handle the rest in the main function, as user input is required
+            pathTypeSuggest = 2
+        #If we do have frequency data
+        elif netFileExists==True:
+            print("On To-Do List");
+            #TODO: Intrepret frequency data
+            #If only calls/times are given, break down into probabilities
+            #Probabilities should be organized by both location and time
+            #Set destNode according to highest probable location based on currTime (mainData[1]) 
+    suggestInfo = [(startNode,destNode),pathTypeSuggest]
+    return suggestInfo
 
 def file_check(netFileDir):
     #First check if the user entered an actual file name

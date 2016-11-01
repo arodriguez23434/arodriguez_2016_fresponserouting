@@ -2,10 +2,22 @@
 #NumberOfIterations=25
 #NumberOfIterations=50
 NumberOfIterations=100
-#ObstructionChance=0.01
-ObstructionChance=0.1
+ObstructionChance=0.01
+#ObstructionChance=0.1
 #ObstructionChance=0.2
 #ObstructionChance=0.3
+fuelStart = 10
+#fuelStart = 50
+#fuelStart = 120
+#fuelStart = 300
+#timeStart = 0
+#timeStart = 180
+#timeStart = 360
+timeStart = 540
+#timeStart = 720
+#timeStart = 900
+#timeStart = 1080
+#timeStart = 1260
 ##Pathways##
 #Fire Station,Jay-Bergman Field
 #Fire Station,Softball Field
