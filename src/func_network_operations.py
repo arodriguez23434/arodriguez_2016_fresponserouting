@@ -244,27 +244,87 @@ def edge_weight_type(graph,netEdgeAttr,netNumRuns,edgeType):
             if edgeInfo[0]==True: graph[node1][node2]['weight_list'][i] += 10000;
     return;
 
-def path_decide_destination(netNodeAttr,mainData,fuelList,netPathDesired,netStationNode,netFileExists,netFileDir):
+def path_decide_destination(netNodeAttr,mainData,timeList,fuelList,netPathDesired,netStationNode,netFreqExists,netFreqTimes):
     #Initialize starting/destination nodes and path type recommendation
     startNode = netPathDesired[1]; destNode = netPathDesired[0]; pathTypeSuggest = 0 
     #First, check if the vehicle has enough fuel to afford to go to another location
-    if (len(fuelList)>1): fuelCompare = mean(fuelList)+(3*stdev(fuelList));
+    if len(fuelList)>1: fuelCompare = mean(fuelList)+(3*stdev(fuelList));
     else: fuelCompare = fuelList[0]*2;
     #If the vehicle does not have fuel within 3 standard deviations of all trips taken so far, bring back to station
-    if (fuelCompare)>mainData[0]: startNode = netPathDesired[1]; destNode = netStationNode; pathTypeSuggest = 1
+    if fuelCompare>mainData[0]: 
+        startNode = netPathDesired[1]; destNode = netStationNode; pathTypeSuggest = 3
+        print("\nFUEL IS LOW!\nDirecting to {0} on Fuel-Efficient path.".format(netStationNode))
     #If the vehicle has enough fuel, continue
     else:
         #If we do not have frequency data
-        if netFileExists==False:
+        if netFreqExists==False:
             #Set the suggested path type to 2 and handle the rest in the main function, as user input is required
             pathTypeSuggest = 2
         #If we do have frequency data
-        elif netFileExists==True:
-            print("On To-Do List");
-            #TODO: Intrepret frequency data
-            #If only calls/times are given, break down into probabilities
-            #Probabilities should be organized by both location and time
-            #Set destNode according to highest probable location based on currTime (mainData[1]) 
+        elif netFreqExists==True:
+            #Obtain the next hour
+            timeHour = int(math.floor(mainData[1]/60))+1
+            #If the next hour is midnight, reset the clock
+            if timeHour>=24: timeHour-=24
+            #Set a temporary variable to obtain whether an emergency event will likely occur
+            eventOccur = 0; i = 0; prevChance = 0
+            #Notify the user of the chance an emergency event will occur within the next 2 hours
+            if timeHour>=23: c=netFreqTimes[timeHour]+netFreqTimes[0]
+            else: c=netFreqTimes[timeHour]+netFreqTimes[timeHour+1]
+            print("\nChance of emergency event: {0}%".format(round(c*100,5)))
+            #Check if at station and not first time running
+            if startNode == netStationNode and mainData[6]>1:
+                #If at station, perform a while loop and get a random binomial distribution based on i trials
+                while True:
+                    #Set an iterating variable i and a variable to track the "real" hour
+                    i+=1; j = timeHour+i;
+                    #Until an emergency occurs, remain at the station and continously count the number of hours passed
+                    if j > 23:
+                        j = math.floor(j/24)
+                        j = (timeHour+i)-(j*24)
+                        prevChance += netFreqTimes[j]
+                        eventOccur = random.binomial(1,prevChance)
+                    else: 
+                        prevChance += netFreqTimes[j]; 
+                        eventOccur = random.binomial(1,prevChance)
+                    #If an emergency occurs, exit the loop
+                    if eventOccur >= 1: break
+                #Notify user how much time has passed since previous emergency
+                print("Predicted Time Elapsed until next emergency: {0} hours".format(i))
+                mainData[1] = j*60
+            else:
+                #If not at station, just perform a binomial distribution sample for both the next hour and hour after
+                eventOccur = random.binomial(1,netFreqTimes[timeHour])
+                if timeHour>=23: eventOccur += random.binomial(1,netFreqTimes[timeHour]+netFreqTimes[0])
+                else: eventOccur += random.binomial(1,netFreqTimes[timeHour]+netFreqTimes[timeHour+1])
+            #If an emergency occurs, predict which location
+            if eventOccur >= 1: 
+                #Make a list of nodes and their probablities
+                node_list = list(); node_eventChance = list()
+                for key in netNodeAttr: node_list.append(key)
+                for k in netNodeAttr.values(): node_eventChance.append(k[5])
+                #Use weighted probability node attribute to determine where the emergency will occur
+                destNode = random.choice(node_list,p = node_eventChance)
+                print("Next emergency likely to occur at: {0}".format(destNode))
+                #Determine which path type to use
+                #If there is more than one emergency likely, then use the fastest route available
+                if eventOccur > 1: pathTypeSuggest = 0
+                #If there is only one emergency, test time difference
+                else:
+                    #If the amount of time it would take to use the fuel-efficient path is greater than average time+0.5 sigma, it's better to use the fastest route
+                    if len(timeList)>1: timeCompare = mean(timeList)+(0.5*stdev(timeList));
+                    else: timeCompare = fuelList[0]*2;
+                    if (mainData[5][(startNode,destNode)][0][2] > timeCompare): 
+                        pathTypeSuggest = 0
+                        print("Recommended Path Type: Quickest")
+                    else: 
+                        pathTypeSuggest = 1
+                        print("Recommended Path Type: Fuel-Efficient")
+            #If an emergency does not occur, go to station and refuel
+            else:
+                startNode = netPathDesired[1]; destNode = netStationNode; pathTypeSuggest = 3
+                print("No emergencies predicted to occur within the next hour.\nDirecting to {0} on Fuel-Efficient path.".format(netStationNode))
+    #Set the location and path type suggested
     suggestInfo = [(startNode,destNode),pathTypeSuggest]
     return suggestInfo
 
@@ -274,7 +334,7 @@ def file_check(netFileDir):
     #Next, check if the file is an excel workbook
     if netFileDir.lower().endswith(('.xlsx','.xlsm','.xltx','.xltm')):
         try:
-            wb = xl.load_workbook(filename = netFileDir)
+            wb = xl.load_workbook(filename = netFileDir, data_only = True)
             netType = ['excel',wb]
             return netType;
         except:
@@ -294,7 +354,7 @@ def file_check(netFileDir):
         print("ERROR: File type was not supported (%s instead of .xlsx, .xlsm, .xltx, or .xltm)" % netFileDir[-4:])
         return False;
 
-def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns,netObstructChance):
+def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns,netObstructChance,netFuelStart,netTimeStart,netFreqTimes):
     #Since we are no longer using the in-line config, clear inputs
     netNodeAttr.clear(); netEdgeAttr.clear(); netNodeNeighbors[:] = []
     #Load the 1st worksheet in the excel workbook  (nodeAttr)   
@@ -309,14 +369,16 @@ def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,
             try:
                 #If the row is the configuration row, set all the info to a variable to return to the main function
                 netPathDesired = (row[0].value,row[1].value)
+                netStationNode = (row[0].value)
                 netNumRuns = row[2].value
                 netObstructChance = row[3].value
-                netInfo = [netPathDesired,netNumRuns,netObstructChance]
+                netFuelStart = row[4].value
+                netTimeStart = row[5].value
+                netInfo = [netPathDesired,netNumRuns,netObstructChance,netFuelStart,netTimeStart,netStationNode]
             except: print("ERROR: Failed to retrieve configuration data from spreadsheet 1!")
             continue
         for cell in row:
             #If the cell is in the label column, do not interpret
-            #TODO: Remove 'G' as a condition when the column is filled
             if cell.column == 'A' or cell.column == 'G': continue
             if cell.value == None: print("WARNING: Cell {0}{1} in spreadsheet 1 has no value!".format(cell.row,cell.column));
             #Add each cell value to the temporary list of row values
@@ -348,10 +410,30 @@ def file_excel_interpret(netFileDir,wb,netNodeAttr,netEdgeAttr,netNodeNeighbors,
         #Append the time data to the values obtained from the column
         col_values.append(time_values)
         #Set the attributes for each edge according to what was obtained from its column
-        netEdgeAttr[col[0].value] = col_values                
+        netEdgeAttr[col[0].value] = col_values 
+    #Load the 3rd worksheet in the excel workbook (FrequencyData)
+    ws = wb.worksheets[2]  
+    #Clear the old frequency list
+    netFreqTimes = list()
+    for row in ws.rows:
+        #Create a temporary list of values for a row
+        freq_values = list()
+        #If the row is the label row, do not interpret
+        if row[0].row == 1 or row[0].row > 25: continue   
+        for cell in row:
+            #If the cell is in the label column, do not interpret
+            if cell.column == 'A': continue    
+            if cell.value == None: print("WARNING: Cell {0}{1} in spreadsheet 3 has no value!".format(cell.row,cell.column));
+            freq_values.append(cell.value)
+        #Add the probabilities for each hour to the frequency list
+        try: netFreqTimes.append(freq_values[2])
+        except: print("ERROR: Failed to retrieve configuration data from spreadsheet 3!")
+    #Add the frequency data to the output
+    if (len(netFreqTimes)<24): print("WARNING: Less than 24 hours of frequency data was found!")
+    netInfo.append(netFreqTimes)
     return netInfo;
     
-def file_inputs_interpret(netFileDir,file,netPathDesired,netNumRuns,netObstructChance):
+def file_inputs_interpret(netFileDir,file,netPathDesired,netNumRuns,netObstructChance,netFuelStart,netTimeStart,netFreqTimes):
     #Setup basic inputs for returning values
     netInfo = list(); lineStr = str('\n'); pathFind = False;
     #Open the file; with parameter allows file to be closed even during exceptions
@@ -375,6 +457,8 @@ def file_inputs_interpret(netFileDir,file,netPathDesired,netNumRuns,netObstructC
             if not lineStr[0]=='#':
                 if 'NumberOfIterations' in lineStr: netNumRuns=int(lineStr[19:])
                 elif 'ObstructionChance' in lineStr: netObstructChance=float(lineStr[18:])
+                elif 'fuelStart' in lineStr: netFuelStart=float(lineStr[12:])
+                elif 'timeStart' in lineStr: netTimeStart=float(lineStr[12:])
     #Return the info provided
-    netInfo = [netPathDesired,netNumRuns,netObstructChance]
+    netInfo = [netPathDesired,netNumRuns,netObstructChance,netFuelStart,netTimeStart]
     return netInfo;

@@ -102,7 +102,7 @@ def check_user_distances(netNodeAttr,netNodeNeighbors):
     #If no issues appear, proceed
     return True
 
-def check_user_path(netNodeAttr,netPathDesired,netStationNode):
+def check_user_path(netNodeAttr,netPathDesired,netStationNode,netFreqExists,netFreqTimes):
     #Is the desired path valid?
     try: 
         #Ensure that the path desired is a tuple of exactly 2 values
@@ -115,6 +115,19 @@ def check_user_path(netNodeAttr,netPathDesired,netStationNode):
     except TypeError: 
         print("ERROR: Desired route was improperly setup! (Not a tuple)")
         return False;
+    #Are the frequency times valid?
+    try:
+        if type(netFreqExists)!=bool: 
+            print("ERROR: Frequency list confirmation was improperly setup! (Not a boolean)")
+            raise TypeError
+        elif (netFreqExists==True):
+            if type(netFreqTimes)!=list:
+                print("ERROR: Frequency list was improperly setup! (Not a list)")
+                raise TypeError          
+            elif len(netFreqTimes)!=24:
+                print("ERROR: Frequency list was improperly setup! ({0} values instead of 24)".format(len(netFreqTimes)))
+                raise IndexError                 
+    except: return False;
     #Do the nodes in the path desired exist?
     node_occur_a = 0; node_occur_b = 0; node_occur_station = 0
     for i in netNodeAttr.keys():
@@ -130,15 +143,47 @@ def check_user_path(netNodeAttr,netPathDesired,netStationNode):
     elif node_occur_station<=0:
         print("ERROR: Station node %s on desired route does not exist!" % netPathDesired[1])
         return False;
+    #If no issues appear, proceed
+    return True
         
-#TODO: Add function to check numerical value validation (i.e. numRuns, obstructChance, fuelStart, timeStart, pathType)
-        
-def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns,netStationNode):
+#Check numerical configuration inputs
+def check_user_config(netNumRuns,netObstructChance,netFuelStart,netTimeStart,netPathType):
+    errorvar = ""  
+    try:
+        #Are the configurable inputs the correct type?     
+        if type(netNumRuns)!=int: errorvar = "netNumRuns"; raise TypeError
+        if type(netObstructChance)!=float and type(netObstructChance)!=int: errorvar = "netObstructChance"; raise TypeError
+        if type(netFuelStart)!=float and type(netFuelStart)!=int: errorvar = "netFuelStart"; raise TypeError
+        if type(netTimeStart)!=float and type(netTimeStart)!=int: errorvar = "netTimeStart"; raise TypeError
+        #If the input is the correct type, is the value valid?        
+        elif (netTimeStart>=1440): 
+            errorvar = "netTimeStart";
+            print("ERROR: Start time is invalid! ({0} >= 1440)".format(netTimeStart))            
+            raise IndexError
+        #Are the configurable inputs the correct type?
+        if type(netPathType)!=int: errorvar = "netPathType"; raise TypeError
+        #If the input is the correct type, is the value valid?         
+        elif (netPathType>=2): 
+            errorvar = "netPathType";
+            print("ERROR: Invalid path type! (Must be 0 or 1; user entered {0})".format(netPathType))
+            raise IndexError
+    #If not, print an error message
+    except TypeError: 
+        print("ERROR: Numerical value {0} was improperly setup! (Not an integer/float)".format(errorvar))
+        return False;
+    except IndexError:
+        print("ERROR: Numerical value {0} was improperly setup! (Not an acceptable value)".format(errorvar))
+        return False;        
+    #If no issues appear, proceed
+    return True
+
+def check_user_input(netNodeAttr,netEdgeAttr,netNodeNeighbors,netPathDesired,netNumRuns,netStationNode,netObstructChance,netFuelStart,netTimeStart,netPathType,netFreqExists,netFreqTimes):
     #Check every portion of the user input for validity and reasonability
     if (check_user_nodes(netNodeAttr)==False): return False
     if (check_user_edges(netNodeAttr,netEdgeAttr,netNodeNeighbors)==False): return False
     if (check_user_distances(netNodeAttr,netNodeNeighbors)==False): return False
-    if (check_user_path(netNodeAttr,netPathDesired,netStationNode)==False): return False
+    if (check_user_path(netNodeAttr,netPathDesired,netStationNode,netFreqExists,netFreqTimes)==False): return False
+    if (check_user_config(netNumRuns,netObstructChance,netFuelStart,netTimeStart,netPathType)==False): return False
     #Check if the number of iterations is reasonable
     if netNumRuns < 1:
         print("ERROR: Number of times to run program is less than 1 (input %d)!" % netNumRuns)

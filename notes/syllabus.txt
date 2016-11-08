@@ -46,8 +46,15 @@ Fall 2016
 - Improve formulas utilized for calculating distance and elevation between nodes based on literature review
   o May require heightmap or elevation data input for accuracy
 - Improve fuel calculations based on findings in literature review
-- Ideally, integrate call frequency data into model and vary destination by where these calls would likely occur and how frequently they would occur
-- If possible, implement Google Maps roads into model
+- Convert deterministic model to probabilistic, continuously running model
+- Implement recommendations based on call frequency data and current vehicle status
+  o Call frequency data provided by Fire Station 65 (2015 data)
+  o Consider how much fuel is left and determine whether a recharge is necessary before further response
+  o Recommend whether or not a fuel-efficient path is feasible or if the quickest path should be taken
+  o Provide report for each route on what is recommended and the risks involved with using that recommendation
+- Refine relevant graphical outputs to be adapted with any changes in the model and necessary data to be reported
+- Ensure all calculations and methods are verifiable with literature reviewed
+- Ideally, implement Google Maps roads into model
   o Learn input and output formats provided by API
   o Map road data to local positions
   o Automate the process of node placement, if possible

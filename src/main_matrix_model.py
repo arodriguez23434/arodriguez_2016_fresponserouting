@@ -19,7 +19,7 @@ o Calculate shortest path from one node in space to another using a robust
 #--Configuration--
 
 #loadFromFile: If 1, load data from Excel spreadsheet; if 2, have inputs.txt override certain variables; if 3, load only inputs.txt and not the Excel spreadsheet; if 0, use configuration below
-loadFromFile = 1
+loadFromFile = 2
 #fileDir: String pointing to file location if loading data from file; ignored if loadFromFile = False
 fileDir = 'files/helloworld.xlsx'
 inputDir = 'files/inputs.txt'
@@ -37,6 +37,10 @@ pathDesired = ('Station','Milican Hall')
 stationNode = 'Station'
 #edgeAttr: Key should be two node names separated by a comma (no space), first value is obstruction and second is a list of times it takes to travel along the edge.
 edgeAttr = {'Station,Jay-Bergman Field': [False,[1]]}
+#freqTimes: Must be a size 24 list. Each index represents the probability of an event occuring at that hour (e.g. index 0 having value 0.1 indicates there's a 1% chance of an emergency at 12:00AM)
+freqTimes = [0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005,0.005]
+#freqExists: Boolean. Determines whether to predict next path based on call frequency or ask for user input at all times
+freqExists = True
 #numRuns: Integer of number of times the program should run before determining best path
 numRuns = 100
 #obstructChance: Global floating point chance of a road being obstructed during calculation
@@ -108,7 +112,7 @@ def main(mainData,pathType):
     numOps = mainData[6]
     #Set the working path based on fuel efficency versus time efficiency
     if (pathType==0): pathMatrix = timeMatrix
-    elif (pathType==1): pathMatrix = fuelMatrix
+    elif (pathType==1 or pathType==3): pathMatrix = fuelMatrix
     
     #Setup relationship graphs
     #TODO: Prepare more suitable correlation graphs due to new weight system
@@ -129,12 +133,22 @@ def main(mainData,pathType):
     
     #Calculate response time and add to current operation time
     #TODO: Find literature or statistical data on time to respond to emergency while on location; using normal as a placeholder due to Central Limit Theorem
-    timeConsume = random.normal(8,1.5,50)
-    timeCurr += int(timeConsume[int(random.uniform(0,49))])
-    #If past 23:59, subtract 24 hours from time to reset clock
-    if (timeCurr>=1440): timeCurr-=1440
-    #Decrease the amount of vehicle fuel available based on travel
-    fuelCurr -= abs(pathMatrix[pathDesired][0][5]/1000)
+    try:    
+        timeConsume = random.normal(8,1.5,50)
+        timeCurr += int(timeConsume[int(random.randint(0,49))])
+        #If past 23:59, subtract 24 hours from time to reset clock
+        if (timeCurr>=1440): timeCurr-=1440
+        #Decrease the amount of vehicle fuel available based on travel
+        fuelCurr -= abs(pathMatrix[pathDesired][0][5]/1000)
+        #If returning to station, add time to refuel and refuel vehicle
+        if (pathDesired[1]==stationNode and pathType == 3): 
+            timeCurr+=360*(fuelCurr/fuelStart)
+            fuelCurr = fuelStart
+        #If fuelCurr current fuel is negative/below zero, warn the user
+        if (fuelCurr <= 0): print("WARNING: Current Fuel on or below 0! This is likely a program issue!")
+    except UnboundLocalError:
+        print("ERROR: Pathtype is invalid; cannot load matrix properly!")
+        return False        
     
     #-Graph Drawing-
     try:
@@ -213,10 +227,8 @@ if loadFromFile:
             if type(fileType)!=bool: 
                 if fileType[0]=='excel':
                     #Obtain info from excel spreadsheet
-                    fileInfo = nop.file_excel_interpret(fileDir,fileType[1],nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,obstructChance)
-                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]
-                    #Since we loaded from file, assume station node is the starting node in the 1st path
-                    stationNode = pathDesired[0]
+                    fileInfo = nop.file_excel_interpret(fileDir,fileType[1],nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,obstructChance,fuelStart,timeStart,freqTimes)
+                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]; fuelStart = fileInfo[3]; timeStart = fileInfo[4]; stationNode = fileInfo[5]; freqTimes = fileInfo[6]
         #Load the inputs.txt file if we are permitting it to be loaded 
         if loadFromFile>1: 
             inputType = nop.file_check(inputDir)
@@ -224,13 +236,13 @@ if loadFromFile:
             if type(inputType)!=bool: 
                 if inputType[0]=='txt':
                     #Obtain info from inputs.txt
-                    fileInfo = nop.file_inputs_interpret(inputDir,fileType[1],pathDesired,numRuns,obstructChance)
-                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]
-                    #Since we loaded from file, assume station node is the starting node in the 1st path
-                    stationNode = pathDesired[0]
+                    fileInfo = nop.file_inputs_interpret(inputDir,fileType[1],pathDesired,numRuns,obstructChance,fuelStart,timeStart,freqTimes)
+                    pathDesired = fileInfo[0]; numRuns = fileInfo[1]; obstructChance = fileInfo[2]; fuelStart = fileInfo[3]; timeStart = fileInfo[4]
+                    #If we're using only inputs.txt, assume station node is the starting node in the 1st path
+                    if loadFromFile >= 3: stationNode = pathDesired[0]
                     
 #Before doing anything else, check user input for errors
-netProceed = check_user_input(nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,stationNode)
+netProceed = check_user_input(nodeAttr,edgeAttr,nodeNeighbors,pathDesired,numRuns,stationNode,obstructChance,fuelStart,timeStart,pathType,freqExists,freqTimes)
 #If there are critical errors in the input, end the program
 if netProceed == False: print("Please reconfigure the model to fix the issue(s) and try again.")
 #If there are no errors, continue
@@ -248,54 +260,59 @@ else:
         #If we have finished an operation, prompt the user to continue
         if (mainData[6]>1):
             print("\n[Input Required] Continue operations? (Y/N): ")
-            userResponse = input()
+            userResponse = input("")
         #If the user wants to continue, repeat operations
         if userResponse.lower()=='y': 
             #Before performing main operations, check if we were given a destination
             if pathType == 2:
                 #If it was determined that our next path cannot be determined, warn the user that results are inaccurate
-                print("WARNING: No call frequency data was provided; results will not be accurate!")
+                print("WARNING: No call frequency data was used; results may not be accurate.")
                 #Ask the user for next location
                 print("[Input Required] Please type the next location to travel to:")
                 #Continously prompt the user until a node in the map or "exit" is given            
                 while True:
                     userResponse = input("");
                     if userResponse.lower() == "exit": exit(); break;
+                    destNode = ""
                     for i in nodeAttr.keys():
                         if i.lower() == userResponse.lower(): destNode = i; break;
-                    if destNode == i: break
+                    if destNode == pathDesired[0]: print("Destination {0} is the same as the original location! Please try again.".format(destNode)); continue
+                    elif destNode == i: break
                     print("Location {0} not found. Please try again.".format(userResponse))
                 pathDesired = (pathDesired[0],destNode)
                 #Set suggsted path type to time-based; typical default state for unpredictable emergencies
                 pathType = 0
             #Perform all main operations
-            mainData = main(mainData,pathType)        
+            mainData = main(mainData,pathType)  
+            #If the data returned isn't valid, end the program
+            if (mainData == False): exit(); break
             #For reporting purposes, break down operation seconds into military time
             timeHour = floor(mainData[1]/60)
             timeMinute = floor(60*((mainData[1]/60)-timeHour))
             #Calculate the average and standard deviation of time and energy for all operations so far
             if (pathType==0): timeList.append(mainData[4][pathDesired][0][2]); fuelList.append(mainData[5][pathDesired][0][5]/1000)
-            elif (pathType==1): timeList.append(mainData[4][pathDesired][0][2]); fuelList.append(mainData[5][pathDesired][0][5]/1000)          
+            elif (pathType==1 or pathType==3): timeList.append(mainData[4][pathDesired][0][2]); fuelList.append(mainData[5][pathDesired][0][5]/1000)          
             #Print the report
             print("\n---Report---\n")
             #Print possible paths and path chosen
             print("Quickest Path: {0}s, {1}kW".format(round(mainData[4][pathDesired][0][2],5),round(mainData[4][pathDesired][0][5]/1000,5)))
             print("Fuel-Efficient Path: {0}s, {1}kW".format(round(mainData[5][pathDesired][0][2],5),round(mainData[5][pathDesired][0][5]/1000,5)))
-            if (pathType==0): print("Path Chosen: Quickest ({0}% Confidence)".format(round(((mainData[4][pathDesired][3])/numRuns)*100,3)))
-            elif (pathType==1): print("Path Chosen: Fuel-Efficient ({0}% Confidence)".format(round(((mainData[5][pathDesired][3])/numRuns)*100,3)))
+            if (pathType==0): print("Path Type: Quickest ({0}% Confidence)".format(round(((mainData[4][pathDesired][3])/numRuns)*100,3)))
+            elif (pathType==1 or pathType == 3): print("Path Chosen: Fuel-Efficient ({0}% Confidence)".format(round(((mainData[5][pathDesired][3])/numRuns)*100,3)))
             #Print current vehicle/operation status
             if (timeMinute<10): print("\nCurrent Time: {0}:0{1} ".format(timeHour,timeMinute))
             else: print("\nCurrent Time: {0}:{1} ".format(timeHour,timeMinute))
             print("Energy Remaining: {0} / {1} KW\nNumber of Operations Performed: {2}".format(round(mainData[0],6),fuelStart,mainData[6])) 
-            print("\n------------")
             #Determine the next recommended destination (must be under report)         
-            suggestInfo = nop.path_decide_destination(nodeAttr,mainData,fuelList,pathDesired,stationNode,False,"")
+            suggestInfo = nop.path_decide_destination(nodeAttr,mainData,timeList,fuelList,pathDesired,stationNode,freqExists,freqTimes)
             pathDesired = suggestInfo[0]; pathType = suggestInfo[1] 
+            print("\n------------")
         #If user does not want to continue, exit program
         elif userResponse.lower()=='n' or userResponse.lower()=='exit' or userResponse.lower()=='quit': break; wantClose = True;
         #Input must be in form of y/n
         else: print("Invalid input. Please try again using Y or N.")
         #Iterate on the number of operations performed
         mainData[6]+=1;
+        userRespnose = ""
         
 #--End of Program--
