@@ -140,10 +140,6 @@ def main(mainData,pathType):
         if (timeCurr>=1440): timeCurr-=1440
         #Decrease the amount of vehicle fuel available based on travel
         fuelCurr -= abs(pathMatrix[pathDesired][0][5]/1000)
-        #If returning to station, add time to refuel and refuel vehicle
-        if (pathDesired[1]==stationNode and pathType == 3): 
-            timeCurr+=360*(fuelCurr/fuelStart)
-            fuelCurr = fuelStart
         #If fuelCurr current fuel is negative/below zero, warn the user
         if (fuelCurr <= 0): print("WARNING: Current Fuel on or below 0! This is likely a program issue!")
     except UnboundLocalError:
@@ -182,7 +178,7 @@ def main(mainData,pathType):
             #If in best path, highlight text
             if p==True: plt.text(nodePos[k][0],nodePos[k][1]+(edge_avg_distance*10),s=k,fontsize=14,bbox=dict(facecolor='green', alpha=0.5),horizontalalignment='center')
             else: plt.text(nodePos[k][0],nodePos[k][1]+(edge_avg_distance*10),s=k,fontsize=14,bbox=dict(facecolor='gray',alpha=0.5),horizontalalignment='center')
-        edge_labels=dict([((u,v,),str(floor(d['weight']))) for u,v,d in outGraph.edges(data=True)])
+        edge_labels=dict([((u,v,),str(floor((d['weight'])))) for u,v,d in outGraph.edges(data=True)])
     except:
         print("WARNING: Graph cannot display best path due to an error.")
         nx.draw(outGraph,nodePos)
@@ -250,23 +246,32 @@ else:
     #Perform initialization
     mainData = init(); 
     #Initialize analysis variables
-    timeList = list(); fuelList = list()
+    timeList = list(); fuelList = list(); totalTime = 0
     #Initialize program exit variable
     wantClose = False
     #Set default user input variable
     userResponse = 'y'
-    #Perform main operations
+    #Set a user prompt variable (0: ask to continue, 1: confirm prediction, 2: continue, 3: ask for real location)
+    userPrompt = 2ana    #Perform main operations
     while wantClose == False:
         #If we have finished an operation, prompt the user to continue
-        if (mainData[6]>1):
+        if (mainData[6]>1) and userPrompt == 0:
             print("\n[Input Required] Continue operations? (Y/N): ")
             userResponse = input("")
+        #Prompt the user to confirm or deny a prediction
+        if userPrompt == 1:
+            print("\n[Input Required] Is the vehicle travelling to the recommended location, {0}? (Y/N): ".format(pathDesired[1]))
+            userResponse = input("")
         #If the user wants to continue, repeat operations
-        if userResponse.lower()=='y': 
+        if userResponse.lower()=='y' or userPrompt == 3: 
+            #If the user wants to continue operations, prompt the user to confirm or deny a prediction, then continue if confirmed
+            if userPrompt == 1: userPrompt = 2
+            elif userPrompt == 0: userPrompt = 1
             #Before performing main operations, check if we were given a destination
-            if pathType == 2:
-                #If it was determined that our next path cannot be determined, warn the user that results are inaccurate
-                print("WARNING: No call frequency data was used; results may not be accurate.")
+            if pathType == 2 or userPrompt == 3:
+                if pathType == 2:
+                    #If it was determined that our next path cannot be determined, warn the user that results are inaccurate
+                    print("WARNING: No call frequency data was used; results may not be accurate.")
                 #Ask the user for next location
                 print("[Input Required] Please type the next location to travel to:")
                 #Continously prompt the user until a node in the map or "exit" is given            
@@ -282,37 +287,55 @@ else:
                 pathDesired = (pathDesired[0],destNode)
                 #Set suggsted path type to time-based; typical default state for unpredictable emergencies
                 pathType = 0
-            #Perform all main operations
-            mainData = main(mainData,pathType)  
-            #If the data returned isn't valid, end the program
-            if (mainData == False): exit(); break
-            #For reporting purposes, break down operation seconds into military time
-            timeHour = floor(mainData[1]/60)
-            timeMinute = floor(60*((mainData[1]/60)-timeHour))
-            #Calculate the average and standard deviation of time and energy for all operations so far
-            if (pathType==0): timeList.append(mainData[4][pathDesired][0][2]); fuelList.append(mainData[5][pathDesired][0][5]/1000)
-            elif (pathType==1 or pathType==3): timeList.append(mainData[4][pathDesired][0][2]); fuelList.append(mainData[5][pathDesired][0][5]/1000)          
-            #Print the report
-            print("\n---Report---\n")
-            #Print possible paths and path chosen
-            print("Quickest Path: {0}s, {1}kW".format(round(mainData[4][pathDesired][0][2],5),round(mainData[4][pathDesired][0][5]/1000,5)))
-            print("Fuel-Efficient Path: {0}s, {1}kW".format(round(mainData[5][pathDesired][0][2],5),round(mainData[5][pathDesired][0][5]/1000,5)))
-            if (pathType==0): print("Path Type: Quickest ({0}% Confidence)".format(round(((mainData[4][pathDesired][3])/numRuns)*100,3)))
-            elif (pathType==1 or pathType == 3): print("Path Chosen: Fuel-Efficient ({0}% Confidence)".format(round(((mainData[5][pathDesired][3])/numRuns)*100,3)))
-            #Print current vehicle/operation status
-            if (timeMinute<10): print("\nCurrent Time: {0}:0{1} ".format(timeHour,timeMinute))
-            else: print("\nCurrent Time: {0}:{1} ".format(timeHour,timeMinute))
-            print("Energy Remaining: {0} / {1} KW\nNumber of Operations Performed: {2}".format(round(mainData[0],6),fuelStart,mainData[6])) 
-            #Determine the next recommended destination (must be under report)         
-            suggestInfo = nop.path_decide_destination(nodeAttr,mainData,timeList,fuelList,pathDesired,stationNode,freqExists,freqTimes)
-            pathDesired = suggestInfo[0]; pathType = suggestInfo[1] 
-            print("\n------------")
-        #If user does not want to continue, exit program
-        elif userResponse.lower()=='n' or userResponse.lower()=='exit' or userResponse.lower()=='quit': break; wantClose = True;
+                #Continue the process                
+                userPrompt = 2
+            #Check if we are not prompting the user a question
+            if userPrompt == 2:
+                #Add fuel to vehicle if stationed before performing operations
+                if (mainData[6]>1): mainData[0]+=suggestInfo[2]
+                #Perform all main operations
+                mainData = main(mainData,pathType)  
+                #If the data returned isn't valid, end the program
+                if (mainData == False): exit(); break
+                #Add to total elapsed time
+                totalTime += mainData[1]
+                timeHour = floor(totalTime/60)
+                timeMinute = floor(60*((totalTime/60)-timeHour))
+                #Ensure fuel does not exceed maximum capacity
+                if mainData[0]>fuelStart: mainData[0]=fuelStart
+                #Calculate the average and standard deviation of time and energy for all operations so far
+                if (pathType==0): timeList.append(mainData[4][pathDesired][0][2]); fuelList.append(mainData[5][pathDesired][0][5]/1000)
+                elif (pathType==1 or pathType==3): timeList.append(mainData[4][pathDesired][0][2]); fuelList.append(mainData[5][pathDesired][0][5]/1000)          
+                #Print the report
+                print("\n---Report---\n")
+                #Print possible paths and path chosen
+                print("Quickest Path: {0}s, {1}kW".format(round(mainData[4][pathDesired][0][2],5),round(mainData[4][pathDesired][0][5]/1000,5)))
+                print("Fuel-Efficient Path: {0}s, {1}kW".format(round(mainData[5][pathDesired][0][2],5),round(mainData[5][pathDesired][0][5]/1000,5)))
+                if (pathType==0): print("Path Type: Quickest, {0}s (Exact path found in {1}% of Iterations)".format(round(mainData[4][pathDesired][0][2],5),round(((mainData[4][pathDesired][3])/numRuns)*100,3)))
+                elif (pathType==1 or pathType == 3): print("Path Chosen: Fuel-Efficient, {0}s (Exact path found in {1}% of Iterations)".format(round(mainData[5][pathDesired][0][2],5),round(((mainData[5][pathDesired][3])/numRuns)*100,3)))
+                #Print current vehicle/operation status
+                if (timeMinute<10): print("\nTotal Vehicle Run-Time: {0}:0{1} ".format(timeHour,timeMinute))
+                else: print("\nTotal Vehicle Run-Time: {0}:{1} ".format(timeHour,timeMinute))
+                print("Energy Remaining: {0} / {1} KW\nNumber of Operations Performed: {2}".format(round(mainData[0],6),fuelStart,mainData[6])) 
+                #Determine the next recommended destination (must be under report)         
+                suggestInfo = nop.path_decide_destination(nodeAttr,mainData,timeList,fuelList,pathDesired,stationNode,freqExists,freqTimes,fuelStart)
+                pathDesired = suggestInfo[0]; pathType = suggestInfo[1]
+                userPrompt = 0
+                print("\n------------")
+        elif userResponse.lower()=='n':
+            #If user does not want to continue, exit program
+            if userPrompt == 0: break; wantClose = True
+            #If denied the prediction, prompt the user for the correct response
+            else: userPrompt = 3; userResponse='y'
+        #If user does not want to continue, exit program   
+        elif userResponse.lower()=='exit' or userResponse.lower()=='quit': break; wantClose = True;
         #Input must be in form of y/n
         else: print("Invalid input. Please try again using Y or N.")
         #Iterate on the number of operations performed
         mainData[6]+=1;
-        userRespnose = ""
-        
+        userResponse = ""
+    #Perform sensitivity analysis
+    print("Compiling final sensitivity analysis...")
+    relationshipGraphSetup(mainData[4],nodeAttr,numRuns)
 #--End of Program--
+        

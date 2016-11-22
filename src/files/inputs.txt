@@ -1,15 +1,18 @@
 ##Configuration##
-#NumberOfIterations=25
-#NumberOfIterations=50
-NumberOfIterations=100
+#NumberOfIterations=10
+#NumberOfIterations=100
+NumberOfIterations=1000
+#NumberOfIterations=10000
 ObstructionChance=0.01
 #ObstructionChance=0.1
 #ObstructionChance=0.2
 #ObstructionChance=0.3
-fuelStart = 10
-#fuelStart = 50
-#fuelStart = 120
-#fuelStart = 300
+#fuelStart = 0.4
+#fuelStart = 1
+fuelStart = 2
+#fuelStart = 5
+#fuelStart = 10
+#fuelStart = 14
 #timeStart = 0
 #timeStart = 180
 #timeStart = 360

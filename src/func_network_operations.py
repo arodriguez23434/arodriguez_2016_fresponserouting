@@ -10,8 +10,13 @@ from numpy import random
 #Function to calculate the fuel cost along an edge
 def calc_fuel_cost(time,distance,elevation):
     #TODO: Calculation is currently placeholder; replace with suitable one
-    activeConsume = 1; heightConsume = 2
+    #0.8 kwH/km; must be in units of kWS/mi
+    #alternative formula: Fuel Consumption = 0.82 x (0.89/FTP + 0.11/US06) + 0.18/FTP + 0.133*1.083(1/SC03 - 1/FTP)
+    # units in kWh/mile, where FTP, US06, HFET, and SC03 represent fuel consumption in kWh/mile for the related drive cycle
+    # however, data for this is not available, so 0.8 kwH/km for large transit vehicles in Kyoto is preferred for this model
+    activeConsume = 0.8*(0.621371/360); heightConsume = 2
     fuel_consumed = activeConsume*time
+    #Could not find data on elevation as a factor for energy consumption!
     angle = math.asin(elevation/(distance*5280))
     fuel_consumed += abs(heightConsume*fuel_consumed*math.sin(angle))
     return fuel_consumed
@@ -237,76 +242,83 @@ def edge_weight_type(graph,netEdgeAttr,netNumRuns,edgeType):
                 graph[node1][node2]['weight_list'][i] = graph[node1][node2]['time_list'][i]
             elif (edgeType == 1):
                 #Weigh based on fuel
-                graph[node1][node2]['weight_list'][i] = graph[node1][node2]['fuel_list'][i]
+                #Using *1000 to scale display from W to kW
+                graph[node1][node2]['weight_list'][i] = graph[node1][node2]['fuel_list'][i]*1000
             #If the road is obstructed, set weight to an invalid value
             #TODO: Currently it just sets the weight to a high value;
             #      Find suitable NetworkX substitute if possible
             if edgeInfo[0]==True: graph[node1][node2]['weight_list'][i] += 10000;
     return;
 
-def path_decide_destination(netNodeAttr,mainData,timeList,fuelList,netPathDesired,netStationNode,netFreqExists,netFreqTimes):
+def path_decide_destination(netNodeAttr,mainData,timeList,fuelList,netPathDesired,netStationNode,netFreqExists,netFreqTimes,netFuelStart):
     #Initialize starting/destination nodes and path type recommendation
-    startNode = netPathDesired[1]; destNode = netPathDesired[0]; pathTypeSuggest = 0 
+    startNode = netPathDesired[1]; destNode = netPathDesired[0]; pathTypeSuggest = 0; fuelAdd = 0
     #First, check if the vehicle has enough fuel to afford to go to another location
     if len(fuelList)>1: fuelCompare = mean(fuelList)+(3*stdev(fuelList));
     else: fuelCompare = fuelList[0]*2;
-    #If the vehicle does not have fuel within 3 standard deviations of all trips taken so far, bring back to station
-    if fuelCompare>mainData[0]: 
-        startNode = netPathDesired[1]; destNode = netStationNode; pathTypeSuggest = 3
-        print("\nFUEL IS LOW!\nDirecting to {0} on Fuel-Efficient path.".format(netStationNode))
-    #If the vehicle has enough fuel, continue
-    else:
-        #If we do not have frequency data
-        if netFreqExists==False:
-            #Set the suggested path type to 2 and handle the rest in the main function, as user input is required
-            pathTypeSuggest = 2
-        #If we do have frequency data
-        elif netFreqExists==True:
-            #Obtain the next hour
-            timeHour = int(math.floor(mainData[1]/60))+1
-            #If the next hour is midnight, reset the clock
-            if timeHour>=24: timeHour-=24
-            #Set a temporary variable to obtain whether an emergency event will likely occur
-            eventOccur = 0; i = 0; prevChance = 0
-            #Notify the user of the chance an emergency event will occur within the next 2 hours
-            if timeHour>=23: c=netFreqTimes[timeHour]+netFreqTimes[0]
-            else: c=netFreqTimes[timeHour]+netFreqTimes[timeHour+1]
-            print("\nChance of emergency event: {0}%".format(round(c*100,5)))
-            #Check if at station and not first time running
-            if startNode == netStationNode and mainData[6]>1:
-                #If at station, perform a while loop and get a random binomial distribution based on i trials
-                while True:
-                    #Set an iterating variable i and a variable to track the "real" hour
-                    i+=1; j = timeHour+i;
-                    #Until an emergency occurs, remain at the station and continously count the number of hours passed
-                    if j > 23:
-                        j = math.floor(j/24)
-                        j = (timeHour+i)-(j*24)
-                        prevChance += netFreqTimes[j]
-                        eventOccur = random.binomial(1,prevChance)
-                    else: 
-                        prevChance += netFreqTimes[j]; 
-                        eventOccur = random.binomial(1,prevChance)
-                    #If an emergency occurs, exit the loop
-                    if eventOccur >= 1: break
-                #Notify user how much time has passed since previous emergency
-                print("Predicted Time Elapsed until next emergency: {0} hours".format(i))
-                mainData[1] = j*60
+    #If we do not have frequency data
+    if netFreqExists==False:
+        #Set the suggested path type to 2 and handle the rest in the main function, as user input is required
+        pathTypeSuggest = 2
+    #If we do have frequency data
+    elif netFreqExists==True:
+        #Obtain the next hour
+        timeHour = int(math.floor(mainData[1]/60))+1
+        #If the next hour is midnight, reset the clock
+        if timeHour>=24: timeHour-=24
+        #Set a temporary variable to obtain whether an emergency event will likely occur
+        eventOccur = 0; i = 0; prevChance = 0
+        #Notify the user of the chance an emergency event will occur within the next 2 hours
+        if timeHour>=23: c=netFreqTimes[timeHour]+netFreqTimes[0]
+        else: c=netFreqTimes[timeHour]+netFreqTimes[timeHour+1]
+        print("\nChance of emergency event: {0}%".format(round(c*100,5)))
+        #Check if at station and not first time running
+        if startNode == netStationNode and mainData[6]>1:
+            #If at station, perform a while loop and get a random binomial distribution based on i trials
+            while True:
+                #Set an iterating variable i and a variable to track the "real" hour
+                i+=1; j = timeHour+i; 
+                #Until an emergency occurs, remain at the station and continously count the number of hours passed
+                if j > 23:
+                    j = math.floor(j/24)
+                    j = (timeHour+i)-(j*24)
+                    prevChance += netFreqTimes[j]
+                    eventOccur = random.binomial(1,prevChance)
+                else: 
+                    prevChance += netFreqTimes[j]; 
+                    eventOccur = random.binomial(1,prevChance)
+                #If an emergency occurs, exit the loop
+                if eventOccur >= 1: break
+            #Notify user how much time has passed since previous emergency
+            print("Predicted Time Elapsed until next emergency: {0} hours".format(i))
+            mainData[1] = j*60
+            #Add the amount of fuel restored in elapsed time
+            #TODO: Replace placeholder fuel added with fuel added per hour based on time elapsed
+            fuelAdd = i*0.1
+            #Ensure fuel added does not exceed maximum capacity
+            if mainData[0]+fuelAdd>netFuelStart: fuelAdd=(netFuelStart-mainData[0])
+            print("Predicted Energy after Recharge: {0} / {1} kW (+{2} KW)".format(round(mainData[0]+fuelAdd,6),netFuelStart,round(fuelAdd,6)))
+        else:
+            #If not at station, just perform a binomial distribution sample for both the next hour and hour after
+            eventOccur = random.binomial(1,netFreqTimes[timeHour])
+            if timeHour>=23: eventOccur += random.binomial(1,netFreqTimes[timeHour]+netFreqTimes[0])
+            else: eventOccur += random.binomial(1,netFreqTimes[timeHour]+netFreqTimes[timeHour+1])
+        #If an emergency occurs, predict which location
+        if eventOccur >= 1: 
+            #Make a list of nodes and their probablities
+            node_list = list(); node_eventChance = list()
+            for key in netNodeAttr: node_list.append(key)
+            for k in netNodeAttr.values(): node_eventChance.append(k[5])
+            #Use weighted probability node attribute to determine where the emergency will occur
+            destNode = random.choice(node_list,p = node_eventChance)
+            print("Next emergency likely to occur at: {0}".format(destNode))
+            #Determine which path type to use
+            #If the vehicle does not have fuel within 3 standard deviations of all trips taken so far, bring back to station
+            if fuelCompare>mainData[0]: 
+                startNode = netPathDesired[1]; destNode = netStationNode; pathTypeSuggest = 3
+                print("\nNOTE: FUEL IS LOW!\nDirecting to {0} on Fuel-Efficient path.".format(netStationNode))
+            #If the vehicle has enough fuel, continue
             else:
-                #If not at station, just perform a binomial distribution sample for both the next hour and hour after
-                eventOccur = random.binomial(1,netFreqTimes[timeHour])
-                if timeHour>=23: eventOccur += random.binomial(1,netFreqTimes[timeHour]+netFreqTimes[0])
-                else: eventOccur += random.binomial(1,netFreqTimes[timeHour]+netFreqTimes[timeHour+1])
-            #If an emergency occurs, predict which location
-            if eventOccur >= 1: 
-                #Make a list of nodes and their probablities
-                node_list = list(); node_eventChance = list()
-                for key in netNodeAttr: node_list.append(key)
-                for k in netNodeAttr.values(): node_eventChance.append(k[5])
-                #Use weighted probability node attribute to determine where the emergency will occur
-                destNode = random.choice(node_list,p = node_eventChance)
-                print("Next emergency likely to occur at: {0}".format(destNode))
-                #Determine which path type to use
                 #If there is more than one emergency likely, then use the fastest route available
                 if eventOccur > 1: pathTypeSuggest = 0
                 #If there is only one emergency, test time difference
@@ -320,12 +332,14 @@ def path_decide_destination(netNodeAttr,mainData,timeList,fuelList,netPathDesire
                     else: 
                         pathTypeSuggest = 1
                         print("Recommended Path Type: Fuel-Efficient")
-            #If an emergency does not occur, go to station and refuel
-            else:
-                startNode = netPathDesired[1]; destNode = netStationNode; pathTypeSuggest = 3
-                print("No emergencies predicted to occur within the next hour.\nDirecting to {0} on Fuel-Efficient path.".format(netStationNode))
+        #If an emergency does not occur, go to station and refuel
+        else:
+            startNode = netPathDesired[1]; destNode = netStationNode; pathTypeSuggest = 3
+            print("No emergencies predicted to occur within the next hour.\nDirecting to {0} on Fuel-Efficient path.".format(netStationNode))
+            #If the vehicle does not have fuel within 3 standard deviations of all trips taken so far, note fuel is low
+            if fuelCompare>mainData[0]: print("NOTE: FUEL IS LOW!\n")
     #Set the location and path type suggested
-    suggestInfo = [(startNode,destNode),pathTypeSuggest]
+    suggestInfo = [(startNode,destNode),pathTypeSuggest,fuelAdd]
     return suggestInfo
 
 def file_check(netFileDir):
