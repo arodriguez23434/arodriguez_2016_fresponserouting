@@ -252,7 +252,7 @@ else:
     #Set default user input variable
     userResponse = 'y'
     #Set a user prompt variable (0: ask to continue, 1: confirm prediction, 2: continue, 3: ask for real location)
-    userPrompt = 2ana    #Perform main operations
+    userPrompt = 2    #Perform main operations
     while wantClose == False:
         #If we have finished an operation, prompt the user to continue
         if (mainData[6]>1) and userPrompt == 0:

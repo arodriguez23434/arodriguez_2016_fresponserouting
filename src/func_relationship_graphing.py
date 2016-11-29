@@ -3,9 +3,9 @@
 import numpy
 import pylab
 import matplotlib.pyplot as plt
-from statistics import mean
+from statistics import stdev
 
-def lineAndLabel(netPathMatrix,netNodeAttr,yparam,netNumRuns,xlabelparam,ylabelparam,figureiter):
+def lineAndLabel(labelType,netPathMatrix,netNodeAttr,yparam,netNumRuns,xlabelparam,ylabelparam,figureiter):
     #Set the matplotlib figure to a new figure and setup x and y values
     canvas = plt.figure(figureiter,figsize=(10,10)); 
     #Define the matrix of 1x1 to place subplots
@@ -13,7 +13,7 @@ def lineAndLabel(netPathMatrix,netNodeAttr,yparam,netNumRuns,xlabelparam,ylabelp
     sp = canvas.add_subplot(1,1,1, axisbg='w')
     pylab.xlim([0,netNumRuns+(netNumRuns/4)])
     #Iterate through every possible combination of paths
-    keyList = list(); keyMap = list(); keyRepeat = False; numElements = 0; largestVal = 0; keyVals = list()
+    keyList = list(); keyMap = list(); keyRepeat = False; numElements = 0; largestVal = 0; smallestVal = False; largestRange = 0; 
     for i in netNodeAttr.keys():
         keyList.append(i); keyRepeat = False
         for j in netNodeAttr.keys():
@@ -25,16 +25,73 @@ def lineAndLabel(netPathMatrix,netNodeAttr,yparam,netNumRuns,xlabelparam,ylabelp
             #Iterate through every entry for every run to plot out points        
             relationX = list(); relationY = list()
             numElements += 1; keySum = 0
-            #print("Determining averages for {0} to {1}...".format(i,j))
             for runIter in range(0,netNumRuns):
-                #Determine the average for the number of iterations so far
-                val = netPathMatrix[(i,j)][1][runIter][yparam]
-                keySum += val
-                #Map the average to the y value and the run to the x value
-                relationY.append(keySum/(runIter+1))
-                relationX.append(runIter)
-                #Record the largest value among all paths for display text sorting
-                if keySum/(runIter+1) > largestVal: largestVal = keySum/(runIter+1)
+                #Graph Type 0: Raw values
+                if labelType == 0:
+                    #Determine the value for the iteration
+                    val = netPathMatrix[(i,j)][1][runIter][yparam]
+                    #Map the iteration value to the y value and the run to the x value
+                    relationY.append(val)
+                    relationX.append(runIter)
+                    #Record the largest value among all paths for display text sorting
+                    if val > largestVal: largestVal = val
+                    #If on the final run, label the graph with the type
+                    if runIter == netNumRuns-1: sp.set_title("Sensitivity Analysis: Values")
+                #Graph type 1: Averages
+                elif labelType == 1:
+                    #Determine the average for the number of iterations so far
+                    val = netPathMatrix[(i,j)][1][runIter][yparam]
+                    keySum += val
+                    #Map the average to the y value and the run to the x value
+                    relationY.append(keySum/(runIter+1))
+                    relationX.append(runIter)
+                    #Record the largest value among all paths for display text sorting
+                    if keySum/(runIter+1) > largestVal: largestVal = keySum/(runIter+1)
+                    #If on the final run, label the graph with the type
+                    if runIter == netNumRuns-1: sp.set_title("Sensitivity Analysis: Averages")
+                #Graph type 2: Range
+                elif labelType == 2:
+                    #Determine the value for the iteration
+                    val = netPathMatrix[(i,j)][1][runIter][yparam]
+                    #Record the largest and smallest value among all paths
+                    if val > largestVal: largestVal = val
+                    elif type(smallestVal)!=type(1): smallestVal = val
+                    elif val < smallestVal: smallestVal = val
+                    #Determine the range
+                    keyRange = largestVal-smallestVal
+                    #If this is the second iteration, set the first value to the be the same for consistency
+                    if runIter==1: relationY[0] = keyRange
+                    #Map the range to the y value and the run to the x value
+                    relationY.append(keyRange)
+                    relationX.append(runIter)
+                    #Record the largest range among all paths
+                    if keyRange > largestRange: largestRange = keyRange
+                    #If on the final run, label the graph with the type
+                    if runIter == netNumRuns-1: sp.set_title("Sensitivity Analysis: Range")
+                #Graph type 3: Largest Value
+                elif labelType == 3:
+                    #Determine the value for the iteration
+                    val = netPathMatrix[(i,j)][1][runIter][yparam]
+                    #Record the largest value among all paths
+                    if val > largestVal: largestVal = val
+                    #Map the largest value to the y value and the run to the x value
+                    relationY.append(largestVal)
+                    relationX.append(runIter)
+                    #If on the final run, label the graph with the type
+                    if runIter == netNumRuns-1: sp.set_title("Sensitivity Analysis: Largest Value")
+                #Graph type 4: Smallest Value
+                elif labelType == 4:
+                    #Determine the value for the iteration
+                    val = netPathMatrix[(i,j)][1][runIter][yparam]
+                    #Record the largest and smallest value among all paths
+                    if val > largestVal: largestVal = val
+                    if type(smallestVal)!=type(1): smallestVal = val
+                    elif val < smallestVal: smallestVal = val
+                    #Map the smallest value to the y value and the run to the x value
+                    relationY.append(smallestVal)
+                    relationX.append(runIter)
+                    #If on the final run, label the graph with the type
+                    if runIter == netNumRuns-1: sp.set_title("Sensitivity Analysis: Smallest Value")
             #Generate a random color and convert to a hex string
             colorRand = (255*numpy.random.uniform(0,1),255*numpy.random.uniform(0,1),255*numpy.random.uniform(0,1))
             colorRandStr = '#'+colorRand[0].hex()[4:6]+colorRand[1].hex()[4:6]+colorRand[2].hex()[4:6]
@@ -50,12 +107,15 @@ def lineAndLabel(netPathMatrix,netNodeAttr,yparam,netNumRuns,xlabelparam,ylabelp
         for i in keyMap:
             if i[3] > largestKey[3]: largestKey = i
         keyMapSorted.append(largestKey)
-        keyMap.remove(largestKey)
+        try: keyMap.remove(largestKey)
+        except: print("ERROR: Could not remove largestKey {0}".format(largestKey))
         if iterable>50: raise(IndexError)
     for i in keyMapSorted:
         #Display the text labels; ordered from top to bottom and uniformly distributed
         i_iter+=1
-        sp.text(netNumRuns-1,largestVal-((i_iter-1)*25),'{0} to {1}'.format(i[0],i[1]),bbox={'facecolor':i[2], 'alpha':0.5, 'pad':10}, color = 'black',horizontalalignment='left')
+        if labelType<2 or labelType==4: sp.text(netNumRuns-1,largestVal-((i_iter-1)*stdev(relationY)*12),'{0} to {1}'.format(i[0],i[1]),bbox={'facecolor':i[2], 'alpha':0.5, 'pad':10}, color = 'black',horizontalalignment='left')
+        elif labelType==2: sp.text(netNumRuns-1,largestRange-((i_iter-1)*stdev(relationY)*6),'{0} to {1}'.format(i[0],i[1]),bbox={'facecolor':i[2], 'alpha':0.5, 'pad':10}, color = 'black',horizontalalignment='left')
+        elif labelType==3: sp.text(netNumRuns-1,i[3],'{0} to {1}'.format(i[0],i[1]),bbox={'facecolor':i[2], 'alpha':0.5, 'pad':10}, color = 'black',horizontalalignment='left')
     # Put the title and labels
     sp.set_xlabel(xlabelparam)
     sp.set_ylabel(ylabelparam)
@@ -73,16 +133,28 @@ def relationshipGraphSetup(netPathMatrix,netNodeAttr,netNumRuns):
     #Setup variable for outputting relationship data
     relationData = list()
     #Iterate through each figure for its own graph output type  
-    #TODO: Currently causes program to hang when performed for fuel consumed; fix issue without losing modularity
-    for figureiter in range(2,3):
+    figureiter = 1
+    for graphiter in range(2,4):
         #Set the parameters each graph will use and their respective labeling
-        if (figureiter==2): 
-            yparam = 2; xlabel = 'Monte-Carlo Runs'; ylabel = 'Destination Time'
-        elif (figureiter==3): 
-            yparam = 5; xlabel = 'Monte-Carlo Runs'; ylabel = 'Fuel Consumed on Path'
-        #Plot out the points, make a best-fit line, and save the relationship data
-        relationData = lineAndLabel(netPathMatrix,netNodeAttr,yparam,netNumRuns,xlabel,ylabel,figureiter)
+        for typeiter in range(0,5):
+            figureiter+=1
+            if (graphiter==2): 
+                labelType = typeiter; yparam = 2; xlabel = 'Monte-Carlo Runs'; ylabel = 'Expected Path Time'
+            elif (graphiter==3): 
+                labelType = typeiter; yparam = 5; xlabel = 'Monte-Carlo Runs'; ylabel = 'Expected Fuel Consumed on Path'
+            #Plot out the points, make a best-fit line, and save the relationship data
+            print(graphiter,typeiter,graphiter*(typeiter+1))
+            relationData = lineAndLabel(labelType,netPathMatrix,netNodeAttr,yparam,netNumRuns,xlabel,ylabel,figureiter)
     #Finally, set the figure to a new entry for the model itself
     plt.figure(1)
     #Return the relationship data    
+    keyList = list(); 
+    for i in netNodeAttr.keys():
+        keyList.append(i); keyRepeat = False
+        for j in netNodeAttr.keys():
+            #Do not map paths that have already been mapped in reverse
+            for k in keyList: 
+                if j == k: keyRepeat = True; break
+            #Do not map paths that have the same destinaton and source
+            if i == j or keyRepeat == True: keyRepeat = False; continue
     return relationData

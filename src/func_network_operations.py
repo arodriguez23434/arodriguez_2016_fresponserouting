@@ -189,8 +189,12 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netObstructChance
         #Before throwing an exception, check if networkX ordered the key backwards
         try: edgeInfo=netEdgeAttr[str(node1+','+node2)]
         except KeyError: edgeInfo=netEdgeAttr[str(node2+','+node1)]
-        #Get the average and standard deviation of recorded times
-        timeAvg = mean(edgeInfo[1]); timeStd = stdev(edgeInfo[1]);
+        #Sum up all the recorded times
+        timeSum = sum(edgeInfo[1]); timeCnt = len(edgeInfo[1]); timeSumSqr = 0
+        #Solve for sum of squares of recorded times
+        for j in range(0,len(edgeInfo[1])): timeSumSqr+=pow(edgeInfo[1][j],2)
+        #Obtain the average and standard deviation of recorded times
+        timeAvg = timeSum/timeCnt; timeStd = math.sqrt((timeSumSqr/timeCnt)-pow(timeAvg,2))
         #Create a list for time generated based on Gaussian distribution
         #Create a list for all the weights and fuel costs calculated
         timeGen = list(); weight_list = list(); fuelCost = list()
@@ -200,7 +204,15 @@ def calc_edge_weights(graph,netNodeAttr,netEdgeAttr,netNumRuns,netObstructChance
         heightdelta = netNodeAttr[node1][4]-netNodeAttr[node2][4]
         for i in range(0,netNumRuns): 
             #Generate a time based on Gaussian distribution of input times
-            timeGen.append(abs(random.normal(timeAvg,timeStd,None)))
+            timeSingleGen = abs(random.normal(timeAvg,timeStd,None))
+            #Add the generated time to the list of recorded times
+            edgeInfo[1].append(timeSingleGen)
+            #Update the sum and count for the lists
+            timeSum+=timeSingleGen; timeCnt+=1; timeSumSqr+=pow(timeSingleGen,2)
+            #Update the average and standard deviation of the times with noise
+            timeAvg = timeSum/timeCnt; timeStd = math.sqrt((timeSumSqr/timeCnt)-pow(timeAvg,2))
+            #Add the average time to the list of times to pick from for shortest path calculations
+            timeGen.append(timeAvg)
             #Add this time to the list of weights
             weight_list.append(timeGen[i])
             #Obtain the fuel consumed

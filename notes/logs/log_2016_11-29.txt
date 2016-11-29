@@ -1,0 +1,14 @@
+Updates:
+- Overhauled time sampling for shortest path
+  > Previously, times were randomly sampled from a normal distribution and added to timeGen. Each value of timeGen was used as the "expected" time for each iteration. Thus, when the best path solution was being found, the edges had effectively random weights for each iteration - resulting in an extreme variation in recommended paths and low confidence.
+  > Now, randomly sampled times are still drawn, but instead of being used directly, they are added to the sum of all times from both inputs and samples. The sum is divided by the number of times to get the average, and this average is calculated and used for each iteration. Thus, the "expected" time value for each iteration aligns more with the traditional definition of an expected value while still retaining a degree of noise - aligning the model to a proper Monte Carlo type rather than a simple randomization one.
+- Fixed issue where sensitivity analysis would not properly scale labels and cause program to hang
+- Added additional sensitivity analysis diagrams
+  > Values, Average, Range, Highest Value, Lowest Value
+  > Sensitivity analysis based on variation caused large strain on resources; consider alternative manner of calculation
+
+Todo:
+- Replace placeholder elevations with values from a recent topographical map
+- Fix sensitivity graph labels to not have large variation in spacing
+- Finalize results and compile report
+- Reflect results of report onto poster
