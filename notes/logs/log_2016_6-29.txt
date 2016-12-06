@@ -1,0 +1,29 @@
+Updates:
+ - Added additional information to check_user_input print
+   > IndexError for netNodeAttr
+   > TypeError for netNodeNeighbors
+ - Added ability to load from Excel workbook file
+   > In Sheet 1, A2 = Start Node (for path), B2 = End Node (for path)
+   > In Sheet 1, A4 to AX = Node key, B4 to BX = X coordinate, C4 to CX = Y coordinate, D and further down reserved for additional attributes
+   > In Sheet 2, columns A and B are nodes that are neighbors to each other 
+ - Updated graph output
+   > Resized image to 10in x 10in
+ - Updated syllabus to reflect progress
+ - Updated readme
+   > Included section on file I/O
+   > Included section on interpreting additional attributes
+   > Included section on adding/removing nodes mid-operation
+
+Todo:
+ - Add additional attributes to nodes/path
+ - Add map background to figure
+ - Complete in-line todos in both files
+
+Potential Ventures:
+ - Swap from matPlotLib to vizGraph or other graphical library for output
+ - Work an edgeAttr dictionary into model
+ - Directed graphs (for specific routes) or MultiGraphs (for 2-lane roads)
+ - Add functionality for determining real distances from model
+   > Update excel spreadsheet to reflect this
+   > Update graph labels to according to these distances
+   > If possible, make a function for calculating time of travel as well

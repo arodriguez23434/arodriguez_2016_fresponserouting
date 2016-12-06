@@ -1,0 +1,33 @@
+Updates:
+- Added function to check numerical value validation (i.e. numRuns, obstructChance, fuelStart, timeStart, pathType)
+- Added frequency of emergency calls to worksheet 3 in helloworld.xlsl
+  > Program currently stores data from Column D (probabilities), but reads data from all columns for possible future use
+- New input: freqTimes - a list of 24 probabilities of an emergency occurring for each hour of the day; only read if freqExists = True
+  > Added support for input check in check_user_path() (func_check_input)
+  > Changed fileExists to freqExists in path_decide_destination() (func_network_operations)
+- Added support for fuelStart and timeStart to be read from excel file
+- Add support for path_decide_destination() to interpret frequency data (func_network_operations)
+    > Random binomial sample taken to determine whether 1 or more successes will occur within a trial
+       o Probability of sample dependent on the time of day
+       o If stationed, probability is cumulative for each hour of the day and continues to perform trials until a success occurs, then sets the time of day based on how many hours it would take for another emergency to occur
+       o If not stationed, only two trials are performed - one for the next hour, and one for the hour after that
+    > If an emergency will occur, the vehicle is directed to the node
+    > If the difference in time between the quickest and fuel-efficient paths is > +0.5 sigma, the quickest path will be chosen; otherwise the fuel-efficient path will be chosen
+    > If an emergency will not occur within the next two hours, the vehicle will be stationed for re-fueling
+- Fixed an issue where excel formulas would be read literally rather than obtaining their value
+- Fixed an issue where inputs.txt would read fuelStart and timeStart
+- Fixed an issue where not typing a new destination would cause a NameError exception
+- Fixed an issue where being directed to stationNode would not notify the user
+- Fixed an issue where being directed to stationNode did not properly allow refueling
+- Fixed an issue where being directed to stationNode did not add time due to refueling
+- Fixed an issue where the station node was being read as the destination
+
+Todo:
+- Update re-fueling to have prediction for each hour spent re-fueling and allow re-fueling to be interrupted
+- Allow user to manually enter a location even if frequency data is provided
+- Prepare more suitable correlation/statistical visuals for new weight system
+- Replace placeholder elevations with values from a recent topographical map
+- Get exact fuel consumption formula from literature
+- Obtain data on emergency response time while on site from literature
+- Finalize report outline
+- Prepare draft 1 of report

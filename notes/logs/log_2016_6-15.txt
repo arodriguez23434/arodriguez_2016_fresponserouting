@@ -1,0 +1,16 @@
+Updates:
+ - Reorganized notes folder to seperate logs from misc. notes
+ - Added logs that were previously missing from 6-8-16 and 6-14-16
+ - Renamed notes to be more clear about their contents
+ - Added overview of robust model
+ - Updated .gitignore to include .pyc
+ - Updated robust network model
+   > Fixed issue with path calculation (NetworkX requires 'weight' attribute on edges for algorithms)
+   > Merged matrix_remove_node with network_remove_node function
+   > Model now supports multiple attributes, but will require manual entry/documentation (i.e. function to calculate a total 'weight' based on all attributes before sending to algorithms)
+   > Slightly modified comment wording for clarity
+   > Added comments on uncommented blocks
+
+Todo:
+ - Allow parameters for file I/O rather than manual entry
+ - Add user input error checks before performing any initialization or calculations

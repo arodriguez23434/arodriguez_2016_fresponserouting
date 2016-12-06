@@ -1,0 +1,25 @@
+Updates:
+- Updated re-fueling process to account for interrupted re-fueling
+- Fixed an issue where fuel could exceed maximum capacity
+- Fixed an issue where reported fuel remaining would be showing for previous run rather than current status
+- Updated fuel consumption formula to be in line with literature
+- User now prompted to confirm or deny a recommendation
+  > If recommendation denied, user will manually enter next location of vehicle and program will suggest route accordingly
+  > Defaults to fastest route if user manually enters next location
+  > Report now displays predicted amount of energy recharged and energy remaining after recharge
+- Current time is now an internal figure and elapsed time for each route is now reported instead
+  > De-sync too likely due to recommendation versus reality
+  > Too cumbersome to have user manually enter the time of day and 'true' elapsed time for each route
+- Overhauled func_relationship_graphing to now support sensitivity analysis output
+  > Previous file now renamed to func_relationship_graphing_old
+  > Sensitivity analysis figure saved as files/sensitivity1.png
+  > Analysis performed at program end
+  
+Todo:
+- Replace placeholder elevations with values from a recent topographical map
+- Fix sensitivity analysis for fuel cost relationship (causes IDE to hang)
+- Additional sensitivity analysis
+  > Currently performs it based on average; raw values makes an unreadable/too-clumped-together graph
+  > One based on variation, one based on range, one based on highest/lowest value
+- Finalize results and compile report
+- Reflect results of report onto poster

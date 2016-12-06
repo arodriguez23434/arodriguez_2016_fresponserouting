@@ -1,0 +1,18 @@
+Updates:
+- Removed testFor (and netTestFor variant) instances from all files due to obsolete use
+  > Simply used to scale certain parameters in the past
+  > Individual consideration of each variable mapped out by graphical output
+  > Can be easily re-implemented as parameters if necessary
+- Revised research letter
+- Moved large function relationshipGraphSetup to its own file for readability
+- Condensed relationGraphSetup to use an iterative approach rather than a copy-paste one 
+- Added self-notes for function splitting/clean up on code readability
+
+Todo:
+- Research prior studies for fuel costs and approach to related problems 
+   > Replace fuel cost calculation formula with more accurate measurements from these studies
+   > Base analysis on any particularly notable parameters determined from these studies
+- Replace placeholder elevations with values from a recent topographical map
+- Update syllabus to reflect all current changes
+- Fix issue with resolution of map failing to be complaint with settings on 1st run of program
+- Follow up on code clean-up todos

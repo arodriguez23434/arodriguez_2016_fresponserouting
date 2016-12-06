@@ -1,0 +1,18 @@
+Updates:
+- Drafted outline and basic format for research letter
+- Updated syllabus to reflect ongoing procedures and current goals
+  > Included ongoing changes to model and solidfied design
+  > Moved/added goals for Fall
+  > Included EXCEL requirements
+- Added inputs.txt
+  > Currently allows for configurable number of iterations, obstruction chance, and considerations of inputs
+- Created function to read inputs.txt
+- Updated readFromFile to allow for both inputs.txt and excel spreadsheet to be read
+
+Todo:
+- Draft, revise and finalize research letter
+- Draft project abstract for EXCEL
+- Finish Todos from log_2016_7-13
+- Use more clean method of reading inputs.txt (currently based on number of lines, which can be lead to error based on user input)
+  > Read based on specific strings rather than simply line count
+  > Allow for user to comment out option if they do not want to override it

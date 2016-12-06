@@ -1,0 +1,18 @@
+Updates:
+ - Modified log naming schema (log_M-D-Y.txt -> log_YYYY_MM-DD.txt)
+ - Corrected edge error message to show problematic edge
+ - Converted tuples in nodeAttr, nodeNeighbors and nodePos to lists for mutability. 
+   > Note: Path matrix keys (and thus, pathDesired) are still tuples since the keys themselves should be immutable and only require operations involving new keys added altogether or removed entirely
+ - Stylized graph
+   > Added coloration to nodes in path
+   > Made nodes squares rather than circles
+ - Configured graph to according to our model
+ - Placed formal operations under a "main" function that is called only if user checks pass
+
+Notes:
+ - NetworkX has only basic graphing functionality for analysis; extended functionality will require another library or software visualization
+   > Background unavailable other than simple coloration
+   > Node scaling can only done at 1:1 ratio
+
+Todo:
+ - See log_16-06-22

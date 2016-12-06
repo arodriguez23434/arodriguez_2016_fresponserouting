@@ -1,0 +1,11 @@
+Updates:
+ - Added Python 3.4 virtual environment files for usage/testing consistency
+ - Experimented with NetworkX functions (test_networkx_undir_graph.py)
+   > Created simple model for obtaining shortest path for series of connected nodes
+   > Model outputs graph and highlights path in red
+
+Issues:
+ - Configuration is inconsistently placed
+ - No commenting/documentation
+ - Source file is placed within environment rather than outside
+ - Outdated folders require re-organization

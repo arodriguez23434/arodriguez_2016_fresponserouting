@@ -1,0 +1,16 @@
+Updates:
+- Fixed issues with labels not properly scaling
+  > Now based on largest and smallest final value divided by the number of labels rather than adding standard deviations
+  > Right-aligned text so they no longer go off-screen
+- Added variance sensitivity analysis diagram
+- Removed obsolete variables due to previous changes
+- Removed debug-related print during relationship graphing
+- Fixed improperly labeled units for elevation
+- Removed obsolete todos
+- Updated report outline
+  > Suggested changes made
+  > Added final sensitivity analysis diagrams and final tables
+
+Todo:
+- Replace placeholder elevations with values from a recent topographical map
+- Reflect results of report onto poster

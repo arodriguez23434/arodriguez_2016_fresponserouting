@@ -1,0 +1,76 @@
+Summer/Fall 2016 URE Agenda
+---
+Primary Objective: Build a flexible model to simulate performance of vehicles under assumption of an entirely electric fleet.
+---
+Summer 2016
+- Setup GitHub page for project
+- Obtain necessary APIs and libraries for model
+  o Experiment with capabilities of these tools
+    > Simple function calls and inputs
+- NetworkX
+  o Develop simplified "shortest path" model to testing capabilities of library
+  o Create a robust network "matrix" in order to store various parameters for edges; focus only shortest path distance for time being
+- Build simplified decision-making model for a closed circuit path
+  o Maintain flexibility in function definition
+  o Allow nodes to be added and removed after model is created
+- Ensure simplified model has proper error-checking
+- Have graph output be presentable at any given time
+  o Ensure readability and large enough size
+  o Save output to file
+- Fit schematic to model
+  o Employ two circuits connected by a node
+  o Have seperate variables for real positions versus projected 
+positions
+- Introduce file I/O to model for simplified testing and updating
+  o Excel Spreadsheet which can be read and updated easily
+  o inputs.txt file to allow user to comment out and remove comments for simulation preferences
+    > Use for both purpose of model configuration as well as testing specific inputs/outputs
+- Output measured weights, determined path and all relevant inputs
+  o Primary inputs: Distance, Time, and Elevation
+  o If available, include secondary inputs such as weight of consideration for these variables or number of iterations performed
+- Extend model to include resource consumption on trip
+  o Arbitrary resource for easy calculations and testing
+    > Ensure functions defined for these can later on include other functions for more complex calculations
+  o Decision-making process must change according to resource count
+    > Low resource should force route to cycle back to the station before continuing
+- Draft, revise and submit a research letter regarding the project, its goals, its parameters, current function and future tasks
+- Create a 230-250 approved abstract as required by EXCEL Program
+
+Fall 2016
+- Provide relevant graphical outputs to show relationship and importance of particular inputs to resulting trip
+- Clean up code, verify/add to documentation and ensure robustness of model
+  o Remove any obsolete modules or functions
+  o Repair or realign old functions to suit needs of new functions
+  o Test model under entirely different geographical conditions and different parameters
+  o Fix any known issues in current form
+- Improve formulas utilized for calculating distance and elevation between nodes based on literature review
+  o May require heightmap or elevation data input for accuracy
+- Improve fuel calculations based on findings in literature review
+- Convert deterministic model to probabilistic, continuously running model
+- Implement recommendations based on call frequency data and current vehicle status
+  o Call frequency data provided by Fire Station 65 (2015 data)
+  o Consider how much fuel is left and determine whether a recharge is necessary before further response
+  o Recommend whether or not a fuel-efficient path is feasible or if the quickest path should be taken
+  o Provide report for each route on what is recommended and the risks involved with using that recommendation
+- Refine relevant graphical outputs to be adapted with any changes in the model and necessary data to be reported
+- Ensure all calculations and methods are verifiable with literature reviewed
+- Ideally, implement Google Maps roads into model
+  o Learn input and output formats provided by API
+  o Map road data to local positions
+  o Automate the process of node placement, if possible
+    > If not, ensure node placement matches with static road data
+  o Ensure routing is consistent with static road data
+    > Can be approximated/simplified rather than exact
+- If precision is required for routing, create "sub-node" system between major nodes
+  o Pathing calculations based on iterating through these sub-node trails
+    > All functionally NetworkX node types, but defined as separate dictionaries for all other purposes
+    > Associate sub-node list with a tuple/list of two nodes; dictionary can be used for this purpose
+  o If simplistic model is preferred, ignore this step
+- End Goal #1: Approved technical report
+  o Explain the process of the model's creation
+  o Demonstrate foundational knowledge and cite from literature review throughout
+  o Showcase results with quantitative data
+  o Extrapolate on usefulness of analyzed data and how this can be implemented in future models/iterations
+- End Goal #2: Draft and approve 75% of poster design
+  o Poster format however should just visualize and describe the model and its purpose
+  o Showcase summarized version of results with emphasis on how their current usefulness and potential future prospects

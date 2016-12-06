@@ -1,0 +1,66 @@
+##Configuration##
+#NumberOfIterations=10
+#NumberOfIterations=100
+#NumberOfIterations=1000
+NumberOfIterations=10000
+ObstructionChance=0.01
+#ObstructionChance=0.1
+#ObstructionChance=0.2
+#ObstructionChance=0.3
+#fuelStart = 0.4
+#fuelStart = 1
+fuelStart = 2
+#fuelStart = 5
+#fuelStart = 10
+#fuelStart = 14
+#timeStart = 0
+#timeStart = 180
+#timeStart = 360
+timeStart = 540
+#timeStart = 720
+#timeStart = 900
+#timeStart = 1080
+#timeStart = 1260
+##Pathways##
+#Fire Station,Jay-Bergman Field
+#Fire Station,Softball Field
+#Fire Station,CFE Arena
+#Fire Station,Lake Claire
+#Fire Station,Early Childhood Center
+#Fire Station,Milican Hall
+#Jay-Bergman Field,Fire Station
+#Jay-Bergman Field,Softball Field
+#Jay-Bergman Field,CFE Arena
+#Jay-Bergman Field,Lake Claire
+#Jay-Bergman Field,Early Childhood Center
+#Jay-Bergman Field,Milican Hall
+#Softball Field,Fire Station
+#Softball Field,Jay-Bergman Field
+#Softball Field,CFE Arena
+#Softball Field,Lake Claire
+#Softball Field,Early Childhood Center
+#Softball Field,Milican Hall
+#CFE Arena,Fire Station
+#CFE Arena,Jay-Bergman Field
+#CFE Arena,Softball Field
+#CFE Arena,Lake Claire
+#CFE Arena,Early Childhood Center
+#CFE Arena,Milican Hall
+#Lake Claire,Fire Station
+#Lake Claire,Jay-Bergman Field
+#Lake Claire,Softball Field
+#Lake Claire,CFE Arena
+#Lake Claire,Early Childhood Center
+#Lake Claire,Milican Hall
+#Early Childhood Center,Fire Station
+#Early Childhood Center,Jay-Bergman Field
+#Early Childhood Center,Softball Field
+#Early Childhood Center,CFE Arena
+#Early Childhood Center,Lake Claire
+#Early Childhood Center,Milican Hall
+#Milican Hall,Fire Station
+Milican Hall,Jay-Bergman Field
+#Milican Hall,Softball Field
+#Milican Hall,CFE Arena
+#Milican Hall,Lake Claire
+#Milican Hall,Early Childhood Center

@@ -2,6 +2,8 @@ name: C:\Anaconda3\envs\test_networkx
 dependencies:
 - cycler=0.10.0=py34_0
 - decorator=4.0.9=py34_0
+- et_xmlfile=1.0.1=py34_0
+- jdcal=1.2=py34_1
 - jpeg=8d=vc10_0
 - libpng=1.6.22=vc10_0
 - libtiff=4.0.6=vc10_2
@@ -9,6 +11,7 @@ dependencies:
 - mkl=11.3.3=1
 - networkx=1.11=py34_0
 - numpy=1.11.0=py34_1
+- openpyxl=2.3.2=py34_0
 - openssl=1.0.2h=vc10_0
 - pip=8.1.2=py34_0
 - pyparsing=2.1.4=py34_0
@@ -25,6 +28,7 @@ dependencies:
 - wheel=0.29.0=py34_0
 - zlib=1.2.8=vc10_3
 - pip:
+  - et-xmlfile==1.0.1
   - googlemaps==2.4.3
   - requests==2.9.1
 

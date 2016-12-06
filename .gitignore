@@ -1,0 +1,4 @@
+*.pyc
+src/files/~$helloworld.xlsx
+src/files/output.png
+*.png

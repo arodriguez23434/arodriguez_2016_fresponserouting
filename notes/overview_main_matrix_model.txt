@@ -1,0 +1,18 @@
+"""
+Operational Overview:
+o Three fundamental dictionaries: nodeAttr, nodePos, pathMatrix
+ - nodeAttr's keys are the node names and attributes are tuples containing (x,y)
+  position as well as any other attributes in z, w, etc.
+ - nodePos is a copy of nodeAttr that only has 2D tuples of physical position
+  as its parameters (used for NetworkX graphing inputs)
+ - pathMatrix contains a list of all possible paths to and from every node.
+   Its keys are tuples of two nodes and its attributes are currently distance
+   and the path taken. More attributes can be added later on.
+o Using this and a list of connected nodes called nodeNeighbors, the graph
+  is built with calculated distances for all possible shortest paths.
+o A pathDesired tuple between two nodes is used to reference these dictionaries
+  to build a graph displaying the shortest path.
+  - There is support for adding and removing entire nodes from the network
+  - Both attaining the shortest path desired and adding/removing nodes does not
+    require the entire network to be rebuilt due to the nature of dictionaries.
+"""
