@@ -1,8 +1,8 @@
 ##Configuration##
 #NumberOfIterations=10
-NumberOfIterations=100
+#NumberOfIterations=100
 #NumberOfIterations=1000
-#NumberOfIterations=10000
+NumberOfIterations=10000
 ObstructionChance=0.01
 #ObstructionChance=0.1
 #ObstructionChance=0.2

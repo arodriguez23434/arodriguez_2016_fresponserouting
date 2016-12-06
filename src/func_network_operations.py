@@ -9,14 +9,12 @@ from numpy import random
 
 #Function to calculate the fuel cost along an edge
 def calc_fuel_cost(time,distance,elevation):
-    #TODO: Calculation is currently placeholder; replace with suitable one
     #0.8 kwH/km; must be in units of kWS/mi
     #alternative formula: Fuel Consumption = 0.82 x (0.89/FTP + 0.11/US06) + 0.18/FTP + 0.133*1.083(1/SC03 - 1/FTP)
     # units in kWh/mile, where FTP, US06, HFET, and SC03 represent fuel consumption in kWh/mile for the related drive cycle
     # however, data for this is not available, so 0.8 kwH/km for large transit vehicles in Kyoto is preferred for this model
     activeConsume = 0.8*(0.621371/360); heightConsume = 2
     fuel_consumed = activeConsume*time
-    #Could not find data on elevation as a factor for energy consumption!
     angle = math.asin(elevation/(distance*5280))
     fuel_consumed += abs(heightConsume*fuel_consumed*math.sin(angle))
     return fuel_consumed
